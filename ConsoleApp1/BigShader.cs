@@ -169,7 +169,7 @@ namespace _ConsoleApp1
             float sum2 = 0;
 
             int k = 0;
-            while (k<10)
+            while (k + 1 < 10)
             {
                 var pos = Positions[k];
                 sum2 += pos.x;

@@ -40,16 +40,32 @@ namespace Compiler
         private int _stk;
         private readonly List<NamedStack> _namedStkLocals = new();
         public readonly Stack<StackItem> Stack = new();
-        private string[] _locNames;
+        private LocalVar[] _locals;
         private StringBuilder unresolved;
 
         internal void Build(string path, TypeDefinition type)
         {
             var method = type.GetMethods().First(p => p.Name.StartsWith("Vert", StringComparison.InvariantCultureIgnoreCase));
-            //Build(path, type, method);
+            Build(path, type, method);
 
             var method2 = type.GetMethods().First(p => p.Name.StartsWith("Frag", StringComparison.InvariantCultureIgnoreCase));
             Build(path, type, method2);
+        }
+
+
+        class LocalVar
+        {
+            public VariableDefinition definition;
+            public string name;
+            public int set;
+            public int load;
+            public bool canBeRef;
+            public StackItem RefValue { get; set; }
+
+            public override string ToString()
+            {
+                return name;
+            }
         }
 
         internal string Build(string path, TypeDefinition type, MethodDefinition method)
@@ -61,15 +77,11 @@ namespace Compiler
             var scope = method.DebugInformation.Scope;
             var debugLocals = scope.Variables.ToArray();
 
-            _locNames = new string[locals.Length];
+            _locals = new LocalVar[locals.Length];
             for (int i = 0; i < locals.Length; i++)
             {
-                _locNames[i] = "tmp" + i;
-                var dbg = debugLocals.FirstOrDefault(p => p.Index == i);
-                if (dbg != null)
-                {
-                    _locNames[i] = dbg.Name;
-                }
+                _locals[i] = new LocalVar();
+                _locals[i].definition = locals[i];
             }
 
             _body = new StringBuilder();
@@ -91,6 +103,38 @@ namespace Compiler
                 }
 
                 instB.AppendLine();
+                if (op.Operand is VariableDefinition variableDefinition)
+                {
+                    var local = _locals[variableDefinition.Index];
+
+                    if (op.OpCode.Code == Code.Stloc)
+                    {
+                        local.set++;
+                    }
+
+                    if (op.OpCode.Code == Code.Ldloc)
+                    {
+                        local.load++;
+                    }
+                }
+            }
+
+            for (var i = 0; i < _locals.Length; i++)
+            {
+                var localVar = _locals[i];
+                var dbg = debugLocals.FirstOrDefault(p => p.Index == i);
+                if (dbg != null)
+                {
+                    _locals[i].name = dbg.Name;
+                }
+                else
+                {
+                    _locals[i].name = "tmp" + i;
+                    if (localVar.set == 1 && localVar.load == 1)
+                    {
+                        localVar.canBeRef = true;
+                    }
+                }
             }
 
             File.WriteAllText(path + type.Name + "." + method.Name + ".opcodes.txt", instB.ToString());
@@ -114,8 +158,9 @@ namespace Compiler
 
             for (int i = 0; i < locals.Length; i++)
             {
+                if (_locals[i].canBeRef) continue;
                 sb.AppendLine(
-                    $"{MapTypeName(locals[i].VariableType)} {_locNames[i]};"
+                    $"{MapTypeName(locals[i].VariableType)} {_locals[i]};"
                 );
             }
 
@@ -264,12 +309,21 @@ namespace Compiler
                     {
                         var varRef = (VariableReference)op.Operand;
                         var typeName = MapTypeName(varRef.VariableType);
-                        Push(new StackItem()
+
+                        var local = _locals[varRef.Index];
+                        if (local.canBeRef)
                         {
-                            expectedType = typeName,
-                            text = _locNames[varRef.Index],
-                            def = varRef
-                        });
+                            Push(local.RefValue);
+                        }
+                        else
+                        {
+                            Push(new StackItem()
+                            {
+                                expectedType = typeName,
+                                text = _locals[varRef.Index].name,
+                                def = varRef
+                            });
+                        }
                     }
                     break;
                 case Code.Ldfld:
@@ -317,7 +371,15 @@ namespace Compiler
                     {
                         var varRef = (VariableReference)op.Operand;
                         var typeName = MapTypeName(varRef.VariableType);
-                        AppendLine($"{_locNames[varRef.Index]} = {Pop(typeName).text};");
+                        var local = _locals[varRef.Index];
+                        if (local.canBeRef)
+                        {
+                            local.RefValue = Pop(typeName);
+                        }
+                        else
+                        {
+                            AppendLine($"{_locals[varRef.Index].name} = {Pop(typeName).text};");
+                        }
                     }
                     break;
                 case Code.Stfld:
@@ -389,6 +451,22 @@ namespace Compiler
                             peek.expectedType = MapTypeName(methodRef.ReturnType);
                             return op.Next;
                         }
+
+                        if (methodRef.Name == "op_UnaryNegation")
+                        {
+                            var expectedType = MapTypeName(methodRef.ReturnType);
+                            var popped = Pop(expectedType);
+                            
+                            Push(new StackItem()
+                            {
+                                def = popped.def,
+                                expectedType = expectedType,
+                                text = "-" + popped.text
+                            });
+                            return op.Next;
+                        }
+
+
 
                         var call = ")";
                         int count = methodRef.Parameters.ToArray().Length;
@@ -551,10 +629,10 @@ namespace Compiler
                     }
                     else
                     {
-                        _body.AppendLine($"if(!{Pop("bool")}) break;");
+                        _body.AppendLine($"if(!({Pop("bool")})) break;");
                     }
 
-                    
+
 
                     proc = loop;
 
