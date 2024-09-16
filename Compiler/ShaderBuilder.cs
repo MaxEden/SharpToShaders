@@ -153,6 +153,9 @@ namespace Compiler
                 case Code.Nop:
                     //_body.AppendLine("//nop");
                     break;
+                case Code.Pop:
+                    _body.AppendLine("//" + Pop() + " is omitted");
+                    break;
                 case Code.Br:
                     {
                         if (RecognizeLoop(op, out var next))
@@ -292,6 +295,21 @@ namespace Compiler
                             expectedType = typeName,
                             text = fieldRef.Name,
                             def = fieldRef
+                        });
+                    }
+                    break;
+                case Code.Ldelem_Any:
+                    {
+                        var typeDef = (TypeDefinition)op.Operand;
+                        var typeName = MapTypeName(typeDef);
+                        var typeElemName = MapTypeName(typeDef.GetElementType());
+
+                        PopTwo(out var left, out var right, typeElemName);
+                        Push(new StackItem()
+                        {
+                            expectedType = typeName,
+                            text = $"{left}[{right}]",
+                            def = typeDef
                         });
                     }
                     break;
@@ -526,7 +544,17 @@ namespace Compiler
                         proc = proc.Next;
                     }
 
-                    _body.AppendLine($"if(!{Pop("bool")}) break;");
+                    if (proc.OpCode.Code == Code.Blt)
+                    {
+                        PopTwo(out var left, out var right);
+                        _body.AppendLine($"if(!({left}<{right})) break;");
+                    }
+                    else
+                    {
+                        _body.AppendLine($"if(!{Pop("bool")}) break;");
+                    }
+
+                    
 
                     proc = loop;
 

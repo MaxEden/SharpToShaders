@@ -20,8 +20,8 @@ namespace _ConsoleApp1
 
     internal class Unity
     {
-        internal static readonly float4 _WorldSpaceCameraPos;
-        internal static readonly int UNITY_PI;
+        internal static float4 _WorldSpaceCameraPos;
+        internal static int UNITY_PI;
         internal static float4 _Time;
         internal static Matrix4x4 UNITY_MATRIX_VP;
         internal static float4 _WorldSpaceLightPos0;
