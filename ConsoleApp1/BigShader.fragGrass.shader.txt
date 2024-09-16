@@ -1,0 +1,115 @@
+fragGrass(){
+float sum;
+float sum2;
+int k;
+float3 dir;
+float3 norm;
+float3 lightDir;
+float3 viewDir;
+float flare;
+float transl;
+float fnorm;
+float sun;
+float sunL;
+float3 coeff;
+float through;
+float4 colorLight;
+float4 colorShadow;
+float4 lcolor;
+float4 sunColor;
+float4 color;
+float4 throughColor;
+float4 result;
+int tmp21;
+fixed4 tmp22;
+bool tmp23;
+fixed4 tmp24;
+bool tmp25;
+float4 tmp26;
+bool tmp27;
+bool tmp28;
+bool tmp29;
+fixed4 tmp30;
+float3 stk1;
+float stk2;
+sum = 0.0;
+tmp21 = 0;
+while(true){
+	tmp23 = tmp21 < 10;
+	if(!tmp23) break;
+	tmp22 = tmp21;
+	sum = sum + tmp22.x;
+	tmp21 = tmp21 + 1;
+}
+sum = sum + 12345.0;
+sum2 = 0.0;
+k = 0;
+while(true){
+tmp25 = k < 10;
+if(!tmp25) break;
+tmp24 = k;
+sum2 = sum2 + tmp24.x;
+k = k + 1;
+}
+sum2 = sum2 + 5678.0;
+if (! facing ) {
+	tmp26 = _WorldSpaceCameraPos;
+	stk1 = i.worldPos.xyz - tmp26.xyz;
+	} else {
+	stk1 = _WorldSpaceLightPos0
+	stk1 = stk1.xyz
+	stk1 = stk1 * 2.0
+}
+dir = stk1;
+if (! facing ) {
+	stk2 = -1.0;
+	} else {
+	stk2 = 1.0
+}
+norm = normalize(stk2 * i.normal);
+lightDir = float3.op_UnaryNegation(normalize(_WorldSpaceLightPos0.xyz));
+tmp26 = _WorldSpaceCameraPos;
+viewDir = normalize(i.worldPos.xyz - tmp26.xyz);
+flare = saturate(dot(viewDir, float3.op_UnaryNegation(lightDir)));
+flare = flare * flare * flare;
+transl = saturate(1.5 * 1.0 - i.color.a);
+fnorm = saturate(dot(norm, lightDir) - 0.5);
+sun = dot(norm, float3.op_UnaryNegation(lightDir));
+sunL = 0.5 + 0.5 * sun;
+sun = saturate(sun);
+sun = lerp(sun, sunL, _Softness);
+coeff..ctor(1.0, 0.8, 0.0);
+through = saturate(coeff.x * flare + coeff.y * fnorm) * transl;
+tmp27 = _UNITY_LIGHTING;
+if ( tmp27 ) {
+	colorLight = _LightColor0;
+	colorShadow = 1.0;
+	colorShadow.set_xyz(ShadeSH9(float4(norm, 1.0)));
+	} else {
+	colorLight = _ColorLight;
+	colorShadow = _ColorShadow;
+}
+lcolor = float4.op_Addition(colorShadow, colorLight);
+sunColor = lerp(colorShadow, lcolor, sun);
+tmp28 = _UNITY_LIGHTING;
+if ( tmp28 ) {
+	sunColor = saturate(sunColor);
+}
+color = i.color * sunColor;
+tmp29 = _UNITY_LIGHTING;
+if ( tmp29 ) {
+	color = float4.op_Addition(color, 0.1 * max(0.0, sunColor - 1.0));
+}
+throughColor = float4.op_Addition(1.3 * i.color * colorLight, colorLight * 0.3);
+result = lerp(color, throughColor, through);
+result = saturate(result);
+UNITY_APPLY_FOG(i.UNITY_FOG_COORDS, result);
+tmp30 = result;
+return tmp30;
+
+}
+/*___unresolved_____
+Ldelem_Any _ConsoleApp1.fixed4 TypeDefinition
+Ldelem_Any _ConsoleApp1.fixed4 TypeDefinition
+
+_____________*/

@@ -1,0 +1,258 @@
+Nop 
+Ldarga v ParameterDefinition
+Ldflda _ConsoleApp1.UNITY_VERTEX_INPUT_INSTANCE_ID _ConsoleApp1.BigShader/appdataGrass::UNITY_VERTEX_INPUT_INSTANCE_ID FieldDefinition
+Call System.Void _ConsoleApp1.Unity::UNITY_SETUP_INSTANCE_ID(_ConsoleApp1.UNITY_VERTEX_INPUT_INSTANCE_ID&) MethodDefinition
+Nop 
+Ldarga v ParameterDefinition
+Ldflda _ConsoleApp1.UNITY_VERTEX_INPUT_INSTANCE_ID _ConsoleApp1.BigShader/appdataGrass::UNITY_VERTEX_INPUT_INSTANCE_ID FieldDefinition
+Ldloca V_0 VariableDefinition
+Ldflda _ConsoleApp1.UNITY_VERTEX_INPUT_INSTANCE_ID _ConsoleApp1.BigShader/v2fGrass::UNITY_VERTEX_INPUT_INSTANCE_ID FieldDefinition
+Call System.Void _ConsoleApp1.Unity::UNITY_TRANSFER_INSTANCE_ID(_ConsoleApp1.UNITY_VERTEX_INPUT_INSTANCE_ID&,_ConsoleApp1.UNITY_VERTEX_INPUT_INSTANCE_ID&) MethodDefinition
+Nop 
+Ldloca V_0 VariableDefinition
+Ldflda _ConsoleApp1.UNITY_VERTEX_OUTPUT_STEREO _ConsoleApp1.BigShader/v2fGrass::UNITY_VERTEX_OUTPUT_STEREO FieldDefinition
+Call System.Void _ConsoleApp1.Unity::UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(_ConsoleApp1.UNITY_VERTEX_OUTPUT_STEREO&) MethodDefinition
+Nop 
+Ldsfld System.Numerics.Matrix4x4 _ConsoleApp1.Unity::unity_ObjectToWorld FieldDefinition
+Ldarga v ParameterDefinition
+Ldflda _ConsoleApp1.float3 _ConsoleApp1.BigShader/appdataGrass::vertex FieldDefinition
+Call _ConsoleApp1.float3 _ConsoleApp1.float3::get_xyz() MethodDefinition
+Ldc_R4 1 Single
+Newobj System.Void _ConsoleApp1.float4::.ctor(_ConsoleApp1.float3,System.Single) MethodDefinition
+Call _ConsoleApp1.float4 _ConsoleApp1.math::mul(System.Numerics.Matrix4x4,_ConsoleApp1.float4) MethodDefinition
+Call _ConsoleApp1.float3 _ConsoleApp1.float4::op_Implicit(_ConsoleApp1.float4) MethodDefinition
+Stloc V_1 VariableDefinition
+Ldarg v ParameterDefinition
+Ldfld _ConsoleApp1.fixed3 _ConsoleApp1.BigShader/appdataGrass::normal FieldDefinition
+Call _ConsoleApp1.float3 _ConsoleApp1.Unity::UnityObjectToWorldNormal(_ConsoleApp1.fixed3) MethodDefinition
+Stloc V_2 VariableDefinition
+Ldc_R4 0 Single
+Stloc V_3 VariableDefinition
+Ldarg  ParameterDefinition
+Ldfld _ConsoleApp1.ShaderFeature _ConsoleApp1.BigShader::_SMOOTH_FADE FieldDefinition
+Call System.Boolean _ConsoleApp1.ShaderFeature::op_Implicit(_ConsoleApp1.ShaderFeature) MethodDefinition
+Stloc V_18 VariableDefinition
+Ldloc V_18 VariableDefinition
+Brfalse IL_0125: ldloca V_0 Instruction
+Nop 
+Ldsfld System.Numerics.Matrix4x4 _ConsoleApp1.Unity::unity_ObjectToWorld FieldDefinition
+Ldc_R4 0 Single
+Ldc_R4 0 Single
+Ldc_R4 0 Single
+Ldc_R4 1 Single
+Newobj System.Void _ConsoleApp1.float4::.ctor(System.Single,System.Single,System.Single,System.Single) MethodDefinition
+Call _ConsoleApp1.float4 _ConsoleApp1.math::mul(System.Numerics.Matrix4x4,_ConsoleApp1.float4) MethodDefinition
+Call _ConsoleApp1.float3 _ConsoleApp1.float4::op_Implicit(_ConsoleApp1.float4) MethodDefinition
+Stloc V_19 VariableDefinition
+Ldloc V_19 VariableDefinition
+Ldsfld _ConsoleApp1.float4 _ConsoleApp1.Unity::_WorldSpaceCameraPos FieldDefinition
+Stloc V_23 VariableDefinition
+Ldloca V_23 VariableDefinition
+Call _ConsoleApp1.float3 _ConsoleApp1.float4::get_xyz() MethodDefinition
+Call System.Single _ConsoleApp1.math::distance(_ConsoleApp1.float3,_ConsoleApp1.float3) MethodDefinition
+Stloc V_20 VariableDefinition
+Ldloc V_20 VariableDefinition
+Ldarg  ParameterDefinition
+Ldfld System.Single _ConsoleApp1.BigShader::_DistMin FieldDefinition
+Sub 
+Ldarg  ParameterDefinition
+Ldfld System.Single _ConsoleApp1.BigShader::_DistMax FieldDefinition
+Ldarg  ParameterDefinition
+Ldfld System.Single _ConsoleApp1.BigShader::_DistMin FieldDefinition
+Sub 
+Div 
+Stloc V_3 VariableDefinition
+Ldloc V_3 VariableDefinition
+Call System.Single _ConsoleApp1.math::saturate(System.Single) MethodDefinition
+Stloc V_3 VariableDefinition
+Ldsfld System.Numerics.Matrix4x4 _ConsoleApp1.Unity::unity_ObjectToWorld FieldDefinition
+Ldarga v ParameterDefinition
+Ldflda _ConsoleApp1.float4 _ConsoleApp1.BigShader/appdataGrass::uv FieldDefinition
+Call _ConsoleApp1.float3 _ConsoleApp1.float4::get_xyz() MethodDefinition
+Ldc_R4 1 Single
+Newobj System.Void _ConsoleApp1.float4::.ctor(_ConsoleApp1.float3,System.Single) MethodDefinition
+Call _ConsoleApp1.float4 _ConsoleApp1.math::mul(System.Numerics.Matrix4x4,_ConsoleApp1.float4) MethodDefinition
+Call _ConsoleApp1.float3 _ConsoleApp1.float4::op_Implicit(_ConsoleApp1.float4) MethodDefinition
+Stloc V_21 VariableDefinition
+Ldarg v ParameterDefinition
+Ldfld _ConsoleApp1.fixed3 _ConsoleApp1.BigShader/appdataGrass::normal2 FieldDefinition
+Call _ConsoleApp1.float3 _ConsoleApp1.Unity::UnityObjectToWorldNormal(_ConsoleApp1.fixed3) MethodDefinition
+Stloc V_22 VariableDefinition
+Ldloc V_1 VariableDefinition
+Ldloc V_21 VariableDefinition
+Ldloc V_3 VariableDefinition
+Call _ConsoleApp1.float3 _ConsoleApp1.math::lerp(_ConsoleApp1.float3,_ConsoleApp1.float3,System.Single) MethodDefinition
+Stloc V_1 VariableDefinition
+Ldloc V_2 VariableDefinition
+Ldloc V_22 VariableDefinition
+Ldloc V_3 VariableDefinition
+Call _ConsoleApp1.float3 _ConsoleApp1.math::lerp(_ConsoleApp1.float3,_ConsoleApp1.float3,System.Single) MethodDefinition
+Stloc V_2 VariableDefinition
+Nop 
+Ldloca V_0 VariableDefinition
+Ldloc V_2 VariableDefinition
+Call _ConsoleApp1.fixed3 _ConsoleApp1.fixed3::op_Implicit(_ConsoleApp1.float3) MethodDefinition
+Stfld _ConsoleApp1.fixed3 _ConsoleApp1.BigShader/v2fGrass::normal FieldDefinition
+Ldc_R4 1 Single
+Ldarga v ParameterDefinition
+Ldflda _ConsoleApp1.fixed4 _ConsoleApp1.BigShader/appdataGrass::color FieldDefinition
+Call System.Single _ConsoleApp1.fixed4::get_a() MethodDefinition
+Sub 
+Stloc V_4 VariableDefinition
+Ldloc V_4 VariableDefinition
+Stloc V_5 VariableDefinition
+Ldc_R4 0,01 Single
+Ldc_R4 0,5 Single
+Ldarg  ParameterDefinition
+Ldfld System.Single _ConsoleApp1.BigShader::_Wind FieldDefinition
+Call System.Single _ConsoleApp1.math::lerp(System.Single,System.Single,System.Single) MethodDefinition
+Stloc V_6 VariableDefinition
+Ldc_R4 3,3 Single
+Stloc V_7 VariableDefinition
+Ldc_R4 15 Single
+Stloc V_8 VariableDefinition
+Ldc_R4 0,2 Single
+Stloc V_9 VariableDefinition
+Ldloc V_5 VariableDefinition
+Ldloc V_6 VariableDefinition
+Mul 
+Stloc V_5 VariableDefinition
+Ldloc V_8 VariableDefinition
+Ldloc V_6 VariableDefinition
+Mul 
+Stloc V_8 VariableDefinition
+Ldc_R4 0,5 Single
+Ldc_R4 0,75 Single
+Ldsflda _ConsoleApp1.float4 _ConsoleApp1.Unity::_Time FieldDefinition
+Ldfld System.Single _ConsoleApp1.float4::y FieldDefinition
+Mul 
+Call System.Single _ConsoleApp1.math::sin(System.Single) MethodDefinition
+Add 
+Stloc V_10 VariableDefinition
+Ldc_R4 0,3 Single
+Ldc_R4 -0,15 Single
+Ldc_R4 0,31 Single
+Ldc_R4 0 Single
+Newobj System.Void _ConsoleApp1.float4::.ctor(System.Single,System.Single,System.Single,System.Single) MethodDefinition
+Ldloc V_10 VariableDefinition
+Call _ConsoleApp1.float4 _ConsoleApp1.float4::op_Multiply(_ConsoleApp1.float4,System.Single) MethodDefinition
+Stloc V_11 VariableDefinition
+Ldloc V_10 VariableDefinition
+Ldc_R4 0,75 Single
+Sub 
+Call System.Single _ConsoleApp1.math::saturate(System.Single) MethodDefinition
+Ldc_R4 0,01 Single
+Mul 
+Stloc V_12 VariableDefinition
+Ldloc V_1 VariableDefinition
+Stloc V_13 VariableDefinition
+Ldc_I4 2 Int32
+Ldsfld System.Int32 _ConsoleApp1.Unity::UNITY_PI FieldDefinition
+Mul 
+Conv_R4 
+Ldloc V_7 VariableDefinition
+Div 
+Stloc V_14 VariableDefinition
+Ldloc V_14 VariableDefinition
+Ldloc V_13 VariableDefinition
+Ldfld System.Single _ConsoleApp1.float3::x FieldDefinition
+Ldloc V_8 VariableDefinition
+Ldsflda _ConsoleApp1.float4 _ConsoleApp1.Unity::_Time FieldDefinition
+Ldfld System.Single _ConsoleApp1.float4::y FieldDefinition
+Ldarg v ParameterDefinition
+Ldfld _ConsoleApp1.float4 _ConsoleApp1.BigShader/appdataGrass::uv FieldDefinition
+Ldfld System.Single _ConsoleApp1.float4::w FieldDefinition
+Ldloc V_12 VariableDefinition
+Mul 
+Add 
+Mul 
+Sub 
+Mul 
+Stloc V_15 VariableDefinition
+Ldloc V_15 VariableDefinition
+Ldloca V_16 VariableDefinition
+Ldloca V_17 VariableDefinition
+Call System.Void _ConsoleApp1.math::sincos(System.Single,System.Single&,System.Single&) MethodDefinition
+Nop 
+Ldloca V_13 VariableDefinition
+Ldflda System.Single _ConsoleApp1.float3::x FieldDefinition
+Dup 
+Ldind_R4 
+Ldloc V_9 VariableDefinition
+Ldloc V_17 VariableDefinition
+Mul 
+Ldloc V_5 VariableDefinition
+Mul 
+Add 
+Stind_R4 
+Ldloca V_13 VariableDefinition
+Ldflda System.Single _ConsoleApp1.float3::y FieldDefinition
+Dup 
+Ldind_R4 
+Ldloc V_9 VariableDefinition
+Ldloc V_16 VariableDefinition
+Mul 
+Ldloc V_5 VariableDefinition
+Mul 
+Add 
+Stind_R4 
+Ldloc V_13 VariableDefinition
+Ldloca V_11 VariableDefinition
+Call _ConsoleApp1.float3 _ConsoleApp1.float4::get_xyz() MethodDefinition
+Ldloc V_4 VariableDefinition
+Call _ConsoleApp1.float3 _ConsoleApp1.float3::op_Multiply(_ConsoleApp1.float3,System.Single) MethodDefinition
+Ldc_R4 1,3 Single
+Call _ConsoleApp1.float3 _ConsoleApp1.float3::op_Multiply(_ConsoleApp1.float3,System.Single) MethodDefinition
+Ldc_R4 0,4 Single
+Call _ConsoleApp1.float3 _ConsoleApp1.float3::op_Division(_ConsoleApp1.float3,System.Single) MethodDefinition
+Ldloc V_6 VariableDefinition
+Call _ConsoleApp1.float3 _ConsoleApp1.float3::op_Multiply(_ConsoleApp1.float3,System.Single) MethodDefinition
+Call _ConsoleApp1.float3 _ConsoleApp1.float3::op_Addition(_ConsoleApp1.float3,_ConsoleApp1.float3) MethodDefinition
+Stloc V_13 VariableDefinition
+Ldloc V_13 VariableDefinition
+Stloc V_1 VariableDefinition
+Ldloca V_0 VariableDefinition
+Ldloc V_1 VariableDefinition
+Stfld _ConsoleApp1.float3 _ConsoleApp1.BigShader/v2fGrass::worldPos FieldDefinition
+Ldloca V_0 VariableDefinition
+Ldsfld System.Numerics.Matrix4x4 _ConsoleApp1.Unity::UNITY_MATRIX_VP FieldDefinition
+Ldloca V_1 VariableDefinition
+Call _ConsoleApp1.float3 _ConsoleApp1.float3::get_xyz() MethodDefinition
+Ldc_R4 1 Single
+Newobj System.Void _ConsoleApp1.float4::.ctor(_ConsoleApp1.float3,System.Single) MethodDefinition
+Call _ConsoleApp1.float4 _ConsoleApp1.math::mul(System.Numerics.Matrix4x4,_ConsoleApp1.float4) MethodDefinition
+Stfld _ConsoleApp1.float4 _ConsoleApp1.BigShader/v2fGrass::vertex FieldDefinition
+Ldarg  ParameterDefinition
+Ldfld _ConsoleApp1.ShaderFeature _ConsoleApp1.BigShader::_SMOOTH_FADE FieldDefinition
+Call System.Boolean _ConsoleApp1.ShaderFeature::op_Implicit(_ConsoleApp1.ShaderFeature) MethodDefinition
+Stloc V_24 VariableDefinition
+Ldloc V_24 VariableDefinition
+Brfalse IL_02d0: nop Instruction
+Nop 
+Ldloca V_0 VariableDefinition
+Ldarg v ParameterDefinition
+Ldfld _ConsoleApp1.fixed4 _ConsoleApp1.BigShader/appdataGrass::color FieldDefinition
+Ldarg v ParameterDefinition
+Ldfld _ConsoleApp1.fixed4 _ConsoleApp1.BigShader/appdataGrass::color2 FieldDefinition
+Ldloc V_3 VariableDefinition
+Call _ConsoleApp1.fixed4 _ConsoleApp1.math::lerp(_ConsoleApp1.fixed4,_ConsoleApp1.fixed4,System.Single) MethodDefinition
+Stfld _ConsoleApp1.fixed4 _ConsoleApp1.BigShader/v2fGrass::color FieldDefinition
+Nop 
+Br IL_02df: ldloca V_0 Instruction
+Nop 
+Ldloca V_0 VariableDefinition
+Ldarg v ParameterDefinition
+Ldfld _ConsoleApp1.fixed4 _ConsoleApp1.BigShader/appdataGrass::color FieldDefinition
+Stfld _ConsoleApp1.fixed4 _ConsoleApp1.BigShader/v2fGrass::color FieldDefinition
+Nop 
+Ldloca V_0 VariableDefinition
+Ldflda _ConsoleApp1.UNITY_FOG_COORDS _ConsoleApp1.BigShader/v2fGrass::UNITY_FOG_COORDS FieldDefinition
+Ldloc V_0 VariableDefinition
+Ldfld _ConsoleApp1.float4 _ConsoleApp1.BigShader/v2fGrass::vertex FieldDefinition
+Call System.Void _ConsoleApp1.Unity::UNITY_TRANSFER_FOG(_ConsoleApp1.UNITY_FOG_COORDS&,_ConsoleApp1.float4) MethodDefinition
+Nop 
+Ldloc V_0 VariableDefinition
+Stloc V_25 VariableDefinition
+Br IL_02f7: ldloc V_25 Instruction
+Ldloc V_25 VariableDefinition
+Ret 
