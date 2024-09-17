@@ -10,6 +10,7 @@ using System.Linq;
 using System.Reflection.Emit;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using static Compiler.ShaderBuilder;
 using static System.Net.Mime.MediaTypeNames;
 using FlowControl = Mono.Cecil.Cil.FlowControl;
@@ -250,6 +251,11 @@ namespace Compiler
                     break;
                 case Code.Brfalse:
                     {
+                        if (RecognizeIf(op, out Instruction next))
+                        {
+                            return next;
+                        }
+
                         AppendLine($"if ( {Pop("bool").text} ) {{");
                         _indent++;
                         var instrDef = (Instruction)op.Operand;
@@ -264,6 +270,11 @@ namespace Compiler
                     break;
                 case Code.Brtrue:
                     {
+                        if (RecognizeIf(op, out Instruction next))
+                        {
+                            return next;
+                        }
+
                         AppendLine($"if (! {Pop("bool").text} ) {{");
                         _indent++;
                         var instrDef = (Instruction)op.Operand;
@@ -598,6 +609,65 @@ namespace Compiler
             return op.Next;
         }
 
+        private bool RecognizeIf(Instruction op, out Instruction next)
+        {
+            next = default;
+            if (op.OpCode.Code != Code.Brtrue) return false;
+
+            var jump = (Instruction)op.Operand;
+            if (jump.Previous.OpCode.Code != Code.Br) return false;
+
+            var jump2 = (Instruction)jump.Previous.Operand;
+
+            var ifStart = jump;
+            var ifEnd = jump2;
+
+            var elseStart = op.Next;
+            var elseEnd = jump.Previous;
+
+            AppendLine($"if ({Pop("bool")} ) {{");
+
+            int stackCount = Stack.Count;
+            for (var current = ifStart; current != ifEnd;)
+            {
+                current = ProcessInstruction(current);
+                if (current == null) return false;
+            }
+
+            NamedStack named = null;
+            if (Stack.Count > stackCount)
+            {
+                var pop = Stack.Pop();
+                _stk++;
+                named = new NamedStack()
+                {
+                    id = _stk,
+                    expectedType = pop.expectedType,
+                    name = "sss" + _stk
+                };
+                _namedStkLocals.Add(named);
+
+                AppendLine($"{named.name} = {pop};");
+            }
+
+            AppendLine("} else {");
+
+            for (var current = elseStart; current != elseEnd;)
+            {
+                current = ProcessInstruction(current);
+                if (current == null) return false;
+            }
+
+            if (Stack.Count > stackCount)
+            {
+                var pop = Stack.Pop();
+                AppendLine($"{named.name} = {pop};");
+            }
+
+            next = jump2;
+            return true;
+        }
+
         private bool RecognizeCBranch(Instruction op, out Instruction next)
         {
             var code = op.OpCode.Code;
@@ -721,7 +791,7 @@ namespace Compiler
 
             _indent--;
             AppendLine("}");
-            
+
 
             next = end.Next;
             return true;
