@@ -6,8 +6,9 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using _ConsoleApp1;
 
-namespace _ConsoleApp1
+namespace Shaders
 {
     struct ShaderFeature
     {
@@ -169,8 +170,12 @@ namespace _ConsoleApp1
             float sum2 = 0;
 
             int k = 0;
-            while (k + 1 < 10)
+            while (k<10)
             {
+                k /= 2;
+                var t = k + 1;
+                if (t > 10) break;
+
                 var pos = Positions[k];
                 sum2 += pos.x;
 
@@ -247,6 +252,8 @@ namespace _ConsoleApp1
 
             Unity.UNITY_APPLY_FOG(ref i.UNITY_FOG_COORDS, ref result);
             return result;//*_DebugColor;//*i.color.w;
+
+            return default;
         }
 
     }

@@ -14,6 +14,7 @@ using static Compiler.ShaderBuilder;
 using static System.Net.Mime.MediaTypeNames;
 using FlowControl = Mono.Cecil.Cil.FlowControl;
 using OpCode = Mono.Cecil.Cil.OpCode;
+using OpCodes = Mono.Cecil.Cil.OpCodes;
 
 namespace Compiler
 {
@@ -43,10 +44,12 @@ namespace Compiler
         private LocalVar[] _locals;
         private StringBuilder unresolved;
 
+        private int _indent;
+
         internal void Build(string path, TypeDefinition type)
         {
-            var method = type.GetMethods().First(p => p.Name.StartsWith("Vert", StringComparison.InvariantCultureIgnoreCase));
-            Build(path, type, method);
+            //var method = type.GetMethods().First(p => p.Name.StartsWith("Vert", StringComparison.InvariantCultureIgnoreCase));
+            //Build(path, type, method);
 
             var method2 = type.GetMethods().First(p => p.Name.StartsWith("Frag", StringComparison.InvariantCultureIgnoreCase));
             Build(path, type, method2);
@@ -60,6 +63,7 @@ namespace Compiler
             public int set;
             public int load;
             public bool canBeRef;
+            public bool canBeOmitted;
             public StackItem RefValue { get; set; }
 
             public override string ToString()
@@ -71,26 +75,14 @@ namespace Compiler
         internal string Build(string path, TypeDefinition type, MethodDefinition method)
         {
             Stack.Clear();
-
-            var locals = method.Body.Variables.OrderBy(p => p.Index).ToArray();
-
-            var scope = method.DebugInformation.Scope;
-            var debugLocals = scope.Variables.ToArray();
-
-            _locals = new LocalVar[locals.Length];
-            for (int i = 0; i < locals.Length; i++)
-            {
-                _locals[i] = new LocalVar();
-                _locals[i].definition = locals[i];
-            }
-
+            _indent = 0;
             _body = new StringBuilder();
-
             method.Body.SimplifyMacros();
 
-            var instr = method.Body.Instructions.ToArray();
+            LocalsSetup(method);
 
             var instB = new StringBuilder();
+            var instr = method.Body.Instructions.ToArray();
             foreach (var op in instr)
             {
                 instB.Append(op.OpCode.Code);
@@ -103,6 +95,74 @@ namespace Compiler
                 }
 
                 instB.AppendLine();
+            }
+
+            File.WriteAllText(path + type.Name + "." + method.Name + ".opcodes.txt", instB.ToString());
+
+            unresolved = new StringBuilder();
+
+            _ifStack.Clear();
+            _namedStack.Clear();
+            _namedStkLocals.Clear();
+
+            {
+                var op = instr[0];
+                while (op != null)
+                {
+                    op = ProcessInstruction(op);
+                }
+            }
+
+            var sb = new StringBuilder();
+            sb.AppendLine($"{method.Name}(){{");
+
+            for (int i = 0; i < _locals.Length; i++)
+            {
+                if (_locals[i].canBeOmitted) continue;
+                if (_locals[i].canBeRef) continue;
+                sb.AppendLine(
+                    $"{MapTypeName(_locals[i].definition.VariableType)} {_locals[i]};"
+                );
+            }
+
+            foreach (var stack in _namedStkLocals)
+            {
+                sb.AppendLine(
+                    $"{stack.expectedType} {stack.name};"
+                );
+            }
+
+            sb.AppendLine(_body.ToString());
+            sb.AppendLine("}");
+            sb.AppendLine("/*___unresolved_____");
+            sb.AppendLine(unresolved.ToString());
+            sb.AppendLine("_____________*/");
+
+
+            File.WriteAllText(path + type.Name + "." + method.Name + ".shader.txt", sb.ToString());
+
+
+            var output = _body.ToString();
+            return output;
+        }
+
+        private void LocalsSetup(MethodDefinition method)
+        {
+            var locals = method.Body.Variables.OrderBy(p => p.Index).ToArray();
+
+            var scope = method.DebugInformation.Scope;
+            var debugLocals = scope.Variables.ToArray();
+
+            _locals = new LocalVar[locals.Length];
+            for (int i = 0; i < locals.Length; i++)
+            {
+                _locals[i] = new LocalVar();
+                _locals[i].definition = locals[i];
+            }
+
+            var instr = method.Body.Instructions.ToArray();
+            foreach (var op in instr)
+            {
                 if (op.Operand is VariableDefinition variableDefinition)
                 {
                     var local = _locals[variableDefinition.Index];
@@ -134,55 +194,13 @@ namespace Compiler
                     {
                         localVar.canBeRef = true;
                     }
+
+                    if (localVar.load == 0)
+                    {
+                        localVar.canBeOmitted = true;
+                    }
                 }
             }
-
-            File.WriteAllText(path + type.Name + "." + method.Name + ".opcodes.txt", instB.ToString());
-
-            unresolved = new StringBuilder();
-
-            _ifStack.Clear();
-            _namedStack.Clear();
-            _namedStkLocals.Clear();
-
-            {
-                var op = instr[0];
-                while (op != null)
-                {
-                    op = ProcessInstruction(op);
-                }
-            }
-
-            var sb = new StringBuilder();
-            sb.AppendLine($"{method.Name}(){{");
-
-            for (int i = 0; i < locals.Length; i++)
-            {
-                if (_locals[i].canBeRef) continue;
-                sb.AppendLine(
-                    $"{MapTypeName(locals[i].VariableType)} {_locals[i]};"
-                );
-            }
-
-            foreach (var stack in _namedStkLocals)
-            {
-                sb.AppendLine(
-                    $"{stack.expectedType} {stack.name};"
-                );
-            }
-
-            sb.AppendLine(_body.ToString());
-            sb.AppendLine("}");
-            sb.AppendLine("/*___unresolved_____");
-            sb.AppendLine(unresolved.ToString());
-            sb.AppendLine("_____________*/");
-
-
-            File.WriteAllText(path + type.Name + "." + method.Name + ".shader.txt", sb.ToString());
-
-
-            var output = _body.ToString();
-            return output;
         }
 
         private Instruction ProcessInstruction(Instruction op)
@@ -190,6 +208,7 @@ namespace Compiler
             if (_ifStack.TryPeek(out var ifPeek) && ifPeek.Instruction == op)
             {
                 UnwindIf(true);
+                _indent--;
                 AppendLine($"}}");
             }
 
@@ -232,6 +251,7 @@ namespace Compiler
                 case Code.Brfalse:
                     {
                         AppendLine($"if ( {Pop("bool").text} ) {{");
+                        _indent++;
                         var instrDef = (Instruction)op.Operand;
                         _ifStack.Push(
                             new IfItem()
@@ -245,6 +265,7 @@ namespace Compiler
                 case Code.Brtrue:
                     {
                         AppendLine($"if (! {Pop("bool").text} ) {{");
+                        _indent++;
                         var instrDef = (Instruction)op.Operand;
                         _ifStack.Push(
                             new IfItem()
@@ -256,33 +277,13 @@ namespace Compiler
                     }
                     break;
                 case Code.Clt:
-                    {
-                        PopTwo(out var left, out var right);
-                        Push(new StackItem()
-                        {
-                            expectedType = "bool",
-                            text = $"{left} < {right}"
-                        });
-                    }
-                    break;
                 case Code.Cgt:
-                    {
-                        PopTwo(out var left, out var right);
-                        Push(new StackItem()
-                        {
-                            expectedType = "bool",
-                            text = $"{left} > {right}"
-                        });
-                    }
-                    break;
                 case Code.Ceq:
                     {
-                        PopTwo(out var left, out var right);
-                        Push(new StackItem()
+                        if (RecognizeCBranch(op, out var next))
                         {
-                            expectedType = "bool",
-                            text = $"{left} == {right}"
-                        });
+                            return next;
+                        }
                     }
                     break;
                 case Code.Ret:
@@ -372,7 +373,12 @@ namespace Compiler
                         var varRef = (VariableReference)op.Operand;
                         var typeName = MapTypeName(varRef.VariableType);
                         var local = _locals[varRef.Index];
-                        if (local.canBeRef)
+
+                        if (local.canBeOmitted)
+                        {
+                            Pop(typeName);
+                        }
+                        else if (local.canBeRef)
                         {
                             local.RefValue = Pop(typeName);
                         }
@@ -456,7 +462,7 @@ namespace Compiler
                         {
                             var expectedType = MapTypeName(methodRef.ReturnType);
                             var popped = Pop(expectedType);
-                            
+
                             Push(new StackItem()
                             {
                                 def = popped.def,
@@ -526,7 +532,6 @@ namespace Compiler
                         }
                     }
                     break;
-
                 case Code.Newobj:
                     {
                         var methodRef = (MethodReference)op.Operand;
@@ -593,64 +598,133 @@ namespace Compiler
             return op.Next;
         }
 
-        private bool RecognizeLoop(Instruction op, out Instruction next)
+        private bool RecognizeCBranch(Instruction op, out Instruction next)
         {
-            if (op.OpCode.Code == Code.Br)
+            var code = op.OpCode.Code;
+            var oper = "";
+            if (code == Code.Clt) oper = "<";
+            if (code == Code.Cgt) oper = ">";
+            if (code == Code.Ceq) oper = "==";
+
+            if (code != Code.Ceq &&
+                op.Next.OpCode == OpCodes.Ldc_I4)
             {
-                var head = (Instruction)op.Operand;
-                var inst = head;
-                while (inst.OpCode.FlowControl != FlowControl.Cond_Branch)
+                int ldc = (int)op.Next.Operand;
+                if (op.Next.Next.OpCode.Code == Code.Ceq)
                 {
-                    inst = inst.Next;
-                    if (inst == null)
-                    {
-                        next = default;
-                        return false;
-                    }
-                }
-
-                var loop = (Instruction)inst.Operand;
-                if (loop == op.Next)
-                {
-                    _body.AppendLine($"while(true){{");
-
-                    var end = inst;
-                    var proc = head;
-                    while (proc != end)
-                    {
-                        ProcessInstruction(proc);
-                        proc = proc.Next;
-                    }
-
-                    if (proc.OpCode.Code == Code.Blt)
+                    if (ldc == 0 || ldc == 1)
                     {
                         PopTwo(out var left, out var right);
-                        _body.AppendLine($"if(!({left}<{right})) break;");
+                        Push(new StackItem()
+                        {
+                            expectedType = "bool",
+                            text = ldc == 1
+                                ? $"{left} {oper} {right}"
+                                : $"!({left} {oper} {right})"
+                        });
+                        next = op.Next.Next.Next;
+                        return true;
                     }
-                    else
+                }
+            }
+
+            if (code != Code.Ceq &&
+                op.Next.OpCode == OpCodes.Stloc)
+            {
+                var varDef = (VariableDefinition)op.Next.Operand;
+                if (varDef.VariableType.Name == "Boolean")
+                {
+                    PopTwo(out var left, out var right);
+                    Push(new StackItem()
                     {
-                        _body.AppendLine($"if(!({Pop("bool")})) break;");
-                    }
+                        expectedType = "bool",
+                        text = $"{left} {oper} {right}"
+                    });
 
-
-
-                    proc = loop;
-
-                    while (proc != head)
-                    {
-                        ProcessInstruction(proc);
-                        proc = proc.Next;
-                    }
-
-                    _body.AppendLine("}");
-
-                    next = end.Next;
+                    next = op.Next;
                     return true;
                 }
             }
 
-            next = default;
-            return false;
+            {
+                PopTwo(out var left, out var right);
+                Push(new StackItem()
+                {
+                    expectedType = "int",
+                    text = $"({left} {oper} {right})?1:0"
+                });
+                next = op.Next;
+                return true;
+            }
+        }
+
+        private bool RecognizeLoop(Instruction op, out Instruction next)
+        {
+            next = op.Next;
+            if (op.OpCode.Code != Code.Br) return false;
+
+            var checkStart = (Instruction)op.Operand;
+            var current = checkStart;
+            while (current.Operand is not Instruction)
+            {
+                current = current.Next;
+                if (current == null) return false;
+            }
+
+            if (current.Operand != op.Next) return false;
+
+            var loopStart = (Instruction)current.Operand;
+            var end = current;
+            AppendLine($"while(true){{");
+            _indent++;
+
+            current = checkStart;
+            while (current != end)
+            {
+                current = ProcessInstruction(current);
+                if (current == null) return false;
+            }
+
+            if (current.OpCode.FlowControl == FlowControl.Cond_Branch)
+            {
+                if (current.OpCode.Code == Code.Blt)
+                {
+                    PopTwo(out var left, out var right);
+                    AppendLine($"if(!({left}<{right})) break;");
+                }
+                else
+                {
+                    AppendLine($"if(!({Pop("bool")})) break;");
+                }
+            }
+
+
+            current = loopStart;
+            while (current != checkStart)
+            {
+                if (current.OpCode.FlowControl == FlowControl.Cond_Branch)
+                {
+                    if (current.Next.OpCode.Code == Code.Br)
+                    {
+                        var jump = (Instruction)current.Next.Operand;
+                        if (jump == end.Next)// out of the loop; break;
+                        {
+                            AppendLine($"if({Pop("bool")}) break;");
+                            current = current.Next.Next;
+                        }
+                    }
+                }
+
+                current = ProcessInstruction(current);
+                if (current == null) return false;
+            }
+
+            _indent--;
+            AppendLine("}");
+            
+
+            next = end.Next;
+            return true;
         }
 
         void UnwindIf(bool exit)
@@ -743,10 +817,9 @@ namespace Compiler
         {
             return Stack.Peek();
         }
-
         public void AppendLine(string line)
         {
-            for (int i = 0; i < _ifStack.Count; i++)
+            for (int i = 0; i < _indent; i++)
             {
                 _body.Append("\t");
             }
@@ -820,6 +893,5 @@ namespace Compiler
             }
             );
         }
-
     }
 }

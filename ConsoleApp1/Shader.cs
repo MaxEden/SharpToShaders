@@ -43,13 +43,13 @@ namespace ConsoleApp1
         }
     }
 
-    public static class math
-    {
-        public static Vector3 mul(Vector3 vec, float scal)
-        {
-            return vec * scal;
-        }
-    }
+    //public static class math
+    //{
+    //    public static Vector3 mul(Vector3 vec, float scal)
+    //    {
+    //        return vec * scal;
+    //    }
+    //}
 
     public interface IShader
     {
