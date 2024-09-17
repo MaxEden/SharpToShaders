@@ -152,10 +152,30 @@ namespace Shaders
         [SV_Target]
         fixed4 fragGrass(v2fGrass i, [SV_IsFrontFace] bool facing)
         {
-            // Unity.UNITY_SETUP_INSTANCE_ID(ref i.UNITY_VERTEX_INPUT_INSTANCE_ID);
-            // Unity.UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(ref i.UNITY_VERTEX_OUTPUT_STEREO);
 
-            // return i.normal.xyzz;
+            bool v = true;
+            int a = 1;
+            int b = 2;
+            while (v)
+            {
+                if (a>b)
+                {
+                    a = b;
+                    if (b>0)
+                    {
+                        return default;
+                    }
+                }
+                
+                if(a>10) break;
+            }
+
+            //return default;
+
+            Unity.UNITY_SETUP_INSTANCE_ID(ref i.UNITY_VERTEX_INPUT_INSTANCE_ID);
+            Unity.UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(ref i.UNITY_VERTEX_OUTPUT_STEREO);
+
+            //return i.normal.xyzz;
 
             float sum = 0;
             for (int j = 0; j < 10; j++)
@@ -170,19 +190,37 @@ namespace Shaders
             float sum2 = 0;
 
             int k = 0;
-            while (k<10)
+            while (k < 10)
             {
                 k /= 2;
                 var t = k + 1;
-                if (t > 10) break;
+                if (t > 15) break;
 
                 var pos = Positions[k];
                 sum2 += pos.x;
 
                 k++;
+
+                if (facing)
+                {
+                    if (sum > 15)
+                    {
+                        for (int j = 0; j < 13; j++)
+                        {
+                            sum += j * 2;
+                        }
+                    }
+
+                    if (sum2 < sum)
+                    {
+                        return default;
+                    }
+                }
             }
 
             sum2 += 5678;
+
+            //return default;
 
 
             var dir = facing ? Unity._WorldSpaceLightPos0.xyz * 2 : i.worldPos.xyz - Unity._WorldSpaceCameraPos.xyz;

@@ -1,4 +1,7 @@
 fragGrass(){
+bool v;
+int a;
+int b;
 float sum;
 float sum2;
 int k;
@@ -20,96 +23,111 @@ float4 sunColor;
 float4 color;
 float4 throughColor;
 float4 result;
-int tmp21;
-fixed4 tmp22;
-bool tmp23;
-fixed4 tmp24;
-bool tmp25;
-float4 tmp26;
-bool tmp27;
-bool tmp28;
-bool tmp29;
-fixed4 tmp30;
-float3 stk1;
-float stk2;
-sum = 0.0;
-tmp21 = 0;
+fixed4 tmp26;
+fixed4 result27;
+int tmp30;
+int tmp38;
+float3 sss1;
+float sss2;
+v = 1;
+a = 1;
+b = 2;
 while(true){
-	tmp23 = tmp21 < 10;
-	if(!tmp23) break;
-	tmp22 = tmp21;
-	sum = sum + tmp22.x;
-	tmp21 = tmp21 + 1;
+	if(!(v)) break;
+	if (a > b) {
+		a = b;
+		if (b > 0) {
+			tmp26 = new fixed4();
+			result27 = tmp26;
+			return result27;
+		}
+	}
+	if(a > 10) break;
+}
+UNITY_SETUP_INSTANCE_ID(i.UNITY_VERTEX_INPUT_INSTANCE_ID);
+UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i.UNITY_VERTEX_OUTPUT_STEREO);
+sum = 0.0;
+tmp30 = 0;
+while(true){
+	if(!(tmp30 < 10)) break;
+	sum = sum + Positions[tmp30].x;
+	tmp30 = tmp30 + 1;
 }
 sum = sum + 12345.0;
 sum2 = 0.0;
 k = 0;
 while(true){
-tmp25 = k < 10;
-if(!tmp25) break;
-tmp24 = k;
-sum2 = sum2 + tmp24.x;
-k = k + 1;
+	if(!(k < 10)) break;
+	k = k / 2;
+	if(k + 1 > 15) break;
+	sum2 = sum2 + Positions[k].x;
+	k = k + 1;
+	if (facing) {
+		if (sum > 15.0) {
+			tmp38 = 0;
+			while(true){
+				if(!(tmp38 < 13)) break;
+				sum = sum + tmp38 * 2;
+				tmp38 = tmp38 + 1;
+			}
+		}
+		if (sum2 < sum) {
+			tmp26 = new fixed4();
+			result27 = tmp26;
+			return result27;
+		}
+	}
 }
 sum2 = sum2 + 5678.0;
-if (! facing ) {
-	tmp26 = _WorldSpaceCameraPos;
-	stk1 = i.worldPos.xyz - tmp26.xyz;
-	} else {
-	stk1 = _WorldSpaceLightPos0
-	stk1 = stk1.xyz
-	stk1 = stk1 * 2.0
+if (facing ) {
+	sss1 = _WorldSpaceLightPos0.xyz * 2.0;
+} else {
+	sss1 = i.worldPos.xyz - _WorldSpaceCameraPos.xyz;
 }
-dir = stk1;
-if (! facing ) {
-	stk2 = -1.0;
-	} else {
-	stk2 = 1.0
+dir = sss1;
+if (facing ) {
+	sss2 = 1.0;
+} else {
+	sss2 = -1.0;
 }
-norm = normalize(stk2 * i.normal);
-lightDir = float3.op_UnaryNegation(normalize(_WorldSpaceLightPos0.xyz));
-tmp26 = _WorldSpaceCameraPos;
-viewDir = normalize(i.worldPos.xyz - tmp26.xyz);
-flare = saturate(dot(viewDir, float3.op_UnaryNegation(lightDir)));
+norm = normalize(sss2 * i.normal);
+lightDir = -normalize(_WorldSpaceLightPos0.xyz);
+viewDir = normalize(i.worldPos.xyz - _WorldSpaceCameraPos.xyz);
+flare = saturate(dot(viewDir, -lightDir));
 flare = flare * flare * flare;
 transl = saturate(1.5 * 1.0 - i.color.a);
 fnorm = saturate(dot(norm, lightDir) - 0.5);
-sun = dot(norm, float3.op_UnaryNegation(lightDir));
+sun = dot(norm, -lightDir);
 sunL = 0.5 + 0.5 * sun;
 sun = saturate(sun);
 sun = lerp(sun, sunL, _Softness);
-coeff..ctor(1.0, 0.8, 0.0);
+coeff = float3(1.0, 0.8, 0.0)
 through = saturate(coeff.x * flare + coeff.y * fnorm) * transl;
-tmp27 = _UNITY_LIGHTING;
-if ( tmp27 ) {
+if (!(_UNITY_LIGHTING) ) {
+	colorLight = _ColorLight;
+	colorShadow = _ColorShadow;
+} else {
 	colorLight = _LightColor0;
 	colorShadow = 1.0;
 	colorShadow.set_xyz(ShadeSH9(float4(norm, 1.0)));
-	} else {
-	colorLight = _ColorLight;
-	colorShadow = _ColorShadow;
 }
-lcolor = float4.op_Addition(colorShadow, colorLight);
+lcolor = colorShadow + colorLight;
 sunColor = lerp(colorShadow, lcolor, sun);
-tmp28 = _UNITY_LIGHTING;
-if ( tmp28 ) {
+if (_UNITY_LIGHTING) {
 	sunColor = saturate(sunColor);
 }
 color = i.color * sunColor;
-tmp29 = _UNITY_LIGHTING;
-if ( tmp29 ) {
-	color = float4.op_Addition(color, 0.1 * max(0.0, sunColor - 1.0));
+if (_UNITY_LIGHTING) {
+	color = color + 0.1 * max(0.0, sunColor - 1.0);
 }
-throughColor = float4.op_Addition(1.3 * i.color * colorLight, colorLight * 0.3);
+throughColor = 1.3 * i.color * colorLight + colorLight * 0.3;
 result = lerp(color, throughColor, through);
 result = saturate(result);
 UNITY_APPLY_FOG(i.UNITY_FOG_COORDS, result);
-tmp30 = result;
-return tmp30;
+result27 = result;
+return result27;
 
 }
 /*___unresolved_____
-Ldelem_Any _ConsoleApp1.fixed4 TypeDefinition
-Ldelem_Any _ConsoleApp1.fixed4 TypeDefinition
 
 _____________*/

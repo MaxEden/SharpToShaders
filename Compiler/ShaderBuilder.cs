@@ -1,21 +1,9 @@
 ﻿using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
-using System.Linq;
-using System.Reflection.Emit;
-using System.Security.Principal;
 using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
-using static Compiler.ShaderBuilder;
-using static System.Net.Mime.MediaTypeNames;
 using FlowControl = Mono.Cecil.Cil.FlowControl;
-using OpCode = Mono.Cecil.Cil.OpCode;
 using OpCodes = Mono.Cecil.Cil.OpCodes;
 
 namespace Compiler
@@ -38,26 +26,35 @@ namespace Compiler
             {"Int32", "int" }
         };
 
+        private Dictionary<Code, string> _brComp = new()
+        {
+            { Code.Blt, "<" },
+            { Code.Bgt, ">" },
+            { Code.Bge, ">=" },
+            { Code.Ble, "<=" },
+            { Code.Beq, "==" },
+        };
+
         private StringBuilder _body;
-        //private readonly Stack<IfItem> _ifStack = new();
-        //private readonly Dictionary<int, NamedStack> _namedStack = new();
         private int _stk;
         private readonly List<NamedStack> _namedStkLocals = new();
         public readonly Stack<StackItem> Stack = new();
+        public readonly Stack<IfScope> _ifScopeStack = new();
         private LocalVar[] _locals;
         private StringBuilder unresolved;
 
         private int _indent;
+        private MethodDefinition _method;
+        private HashSet<Instruction> _returnBranches;
 
         internal void Build(string path, TypeDefinition type)
         {
-            //var method = type.GetMethods().First(p => p.Name.StartsWith("Vert", StringComparison.InvariantCultureIgnoreCase));
-            //Build(path, type, method);
-
             var method2 = type.GetMethods().First(p => p.Name.StartsWith("Frag", StringComparison.InvariantCultureIgnoreCase));
             Build(path, type, method2);
-        }
 
+            var method1 = type.GetMethods().First(p => p.Name.StartsWith("Vert", StringComparison.InvariantCultureIgnoreCase));
+            Build(path, type, method1);
+        }
 
         class LocalVar
         {
@@ -82,6 +79,8 @@ namespace Compiler
             _body = new StringBuilder();
             method.Body.SimplifyMacros();
 
+            _method = method;
+
             LocalsSetup(method);
 
             var instB = new StringBuilder();
@@ -104,8 +103,6 @@ namespace Compiler
 
             unresolved = new StringBuilder();
 
-            //_ifStack.Clear();
-            //_namedStack.Clear();
             _namedStkLocals.Clear();
 
             {
@@ -204,17 +201,31 @@ namespace Compiler
                     }
                 }
             }
+
+
+            //==============
+
+            var rets = instr.Where(p => p.OpCode.Code == Code.Ret);
+            _returnBranches = instr
+                .Where(p => p.OpCode.FlowControl == FlowControl.Branch ||
+                            p.OpCode.FlowControl == FlowControl.Cond_Branch)
+                .Where(p => rets.Any(x => x.Previous == p.Operand))
+                .ToHashSet();
+
+
+            foreach (var op in _returnBranches)
+            {
+                var jump = (Instruction)op.Operand;
+                if (jump.Operand is VariableReference variable)
+                {
+                    var loc = _locals.First(p => p.definition == variable);
+                    loc.name = "result" + variable.Index;
+                }
+            }
         }
 
         private Instruction ProcessInstruction(Instruction op)
         {
-            //if (_ifStack.TryPeek(out var ifPeek) && ifPeek.Instruction == op)
-            //{
-            //    UnwindIf(true);
-            //    _indent--;
-            //    AppendLine($"}}");
-            //}
-
             switch (op.OpCode.Code)
             {
                 case Code.Nop:
@@ -223,31 +234,27 @@ namespace Compiler
                 case Code.Pop:
                     _body.AppendLine("//" + Pop() + " is omitted");
                     break;
+                case Code.Conv_R4:
+                    //_body.Append("//conv to float");
+                    break;
                 case Code.Br:
                     {
-                        if (RecognizeReturn(op, out var next1))
-                        {
-                            return next1;
-                        }
-
-                        if (RecognizeLoop(op, out var next))
-                        {
-                            return next;
-                        }
+                        if (RecognizeReturnBranch(op, out var next1)) return next1;
+                        if (RecognizeLoop(op, out var next)) return next;
 
                         throw new InvalidOperationException();
                     }
                     break;
-                case Code.Conv_R4:
-                    //_body.Append("//conv to float");
-                    break;
                 case Code.Brfalse:
                 case Code.Brtrue:
+                case Code.Blt:
+                case Code.Bgt:
+                case Code.Bge:
+                case Code.Ble:
+                case Code.Beq:
                     {
-                        if (RecognizeIf(op, out Instruction next))
-                        {
-                            return next;
-                        }
+                        if (RecognizeBreak(op, out var next1)) return next1;
+                        if (RecognizeIf(op, out var next)) return next;
 
                         throw new InvalidOperationException();
                     }
@@ -256,10 +263,7 @@ namespace Compiler
                 case Code.Cgt:
                 case Code.Ceq:
                     {
-                        if (RecognizeCBranch(op, out var next))
-                        {
-                            return next;
-                        }
+                        if (RecognizeCBranch(op, out var next)) return next;
                     }
                     break;
                 case Code.Ret:
@@ -297,9 +301,29 @@ namespace Compiler
                             Push(new StackItem()
                             {
                                 expectedType = typeName,
-                                text = _locals[varRef.Index].name,
+                                text = local.name,
                                 def = varRef
                             });
+                        }
+                    }
+                    break;
+                case Code.Stloc:
+                    {
+                        var varRef = (VariableReference)op.Operand;
+                        var typeName = MapTypeName(varRef.VariableType);
+                        var local = _locals[varRef.Index];
+
+                        if (local.canBeOmitted)
+                        {
+                            Pop(typeName);
+                        }
+                        else if (local.canBeRef)
+                        {
+                            local.RefValue = Pop(typeName);
+                        }
+                        else
+                        {
+                            AppendLine($"{_locals[varRef.Index].name} = {Pop(typeName).text};");
                         }
                     }
                     break;
@@ -311,7 +335,7 @@ namespace Compiler
                         Push(new StackItem()
                         {
                             expectedType = typeName,
-                            text = Acc(Pop().text, fieldRef.Name),
+                            text = Access(Pop().text, fieldRef.Name),
                             def = fieldRef
                         });
                     }
@@ -344,32 +368,13 @@ namespace Compiler
                         });
                     }
                     break;
-                case Code.Stloc:
-                    {
-                        var varRef = (VariableReference)op.Operand;
-                        var typeName = MapTypeName(varRef.VariableType);
-                        var local = _locals[varRef.Index];
 
-                        if (local.canBeOmitted)
-                        {
-                            Pop(typeName);
-                        }
-                        else if (local.canBeRef)
-                        {
-                            local.RefValue = Pop(typeName);
-                        }
-                        else
-                        {
-                            AppendLine($"{_locals[varRef.Index].name} = {Pop(typeName).text};");
-                        }
-                    }
-                    break;
                 case Code.Stfld:
                     {
                         var fieldRef = (FieldReference)op.Operand;
                         var typeName = MapTypeName(fieldRef.DeclaringType);
                         PopTwo(out var left, out var right, typeName);
-                        AppendLine($"{Acc(left.text, fieldRef.Name)} = {right.text};");
+                        AppendLine($"{Access(left.text, fieldRef.Name)} = {right.text};");
                     }
                     break;
                 case Code.Initobj:
@@ -447,20 +452,10 @@ namespace Compiler
                             });
                             return op.Next;
                         }
-                        
-                        var call = ")";
-                        int count = methodRef.Parameters.ToArray().Length;
 
-                        for (int j = 0; j < count; j++)
-                        {
-                            call = Pop().text + call;
-                            if (j < count - 1)
-                            {
-                                call = ", " + call;
-                            }
-                        }
+                        var paramStr = PopParameters(methodRef);
 
-                        call = "(" + call;
+                        var call = "(" + paramStr + ")";
 
                         if (MapMethod(methodRef, call, out var result))
                         {
@@ -488,11 +483,11 @@ namespace Compiler
 
                             if (methodRef.HasThis)
                             {
-                                call = Acc(Pop().text, call);
+                                call = Access(Pop().text, call);
                             }
                             else
                             {
-                                call = Acc(methodRef.DeclaringType.Name, call);
+                                call = Access(methodRef.DeclaringType.Name, call);
                             }
                         }
 
@@ -579,19 +574,38 @@ namespace Compiler
             return op.Next;
         }
 
-        private bool RecognizeReturn(Instruction op, out Instruction next)
+        private string PopParameters(MethodReference methodRef)
         {
-            var jump = (Instruction)op.Operand;
-            if (jump.OpCode.Code == Code.Ret)
+            var parameters = methodRef.Parameters.ToArray();
+            int count = parameters.Length;
+            var result = "";
+            for (int j = count - 1; j >= 0; j--)
             {
-                AppendLine("return;");
-                next = op.Next;
-                return true;
+                var expectedType = MapTypeName(parameters[j].ParameterType);
+                result = Pop(expectedType).text + result;
+                if (j > 0)
+                {
+                    result = ", " + result;
+                }
             }
 
-            if (jump.Next.OpCode.Code == Code.Ret)
+            return result;
+        }
+
+        private bool RecognizeReturnBranch(Instruction op, out Instruction next)
+        {
+            if (_returnBranches.Contains(op))
             {
-                //ignore
+                var jump = (Instruction)op.Operand;
+                var value = (VariableReference)jump.Operand;
+                var loc = _locals.First(p => p.definition == value);
+
+                if (_ifScopeStack.Count > 0)
+                {
+                    AppendLine($"return {loc.name};");
+                }
+
+
                 next = op.Next;
                 return true;
             }
@@ -600,28 +614,57 @@ namespace Compiler
             return false;
         }
 
+        private bool IsInScope(Instruction op)
+        {
+            if (_ifScopeStack.TryPeek(out var ifScope))
+            {
+                if (op.Offset < ifScope.Start.Offset || op.Offset > ifScope.End.Offset)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
         private bool RecognizeIf(Instruction op, out Instruction next)
         {
             next = default;
             if (op.OpCode.FlowControl != FlowControl.Cond_Branch) return false;
 
             var jump = (Instruction)op.Operand;
-            if (jump.Previous.OpCode.Code == Code.Br) //IF-ELSE
+            if (jump.Offset < op.Offset) return false;
+            if (!IsInScope(jump))
             {
-                var jump2 = (Instruction)jump.Previous.Operand;
+                return false;
+            }
 
-                var ifStart = jump;
-                var ifEnd = jump2;
+            var prev = jump.Previous;
+            //while (prev.OpCode.Code == Code.Nop) prev = prev.Previous;
 
-                var elseStart = op.Next;
-                var elseEnd = jump.Previous;
+            if (prev.OpCode.Code == Code.Br && IsInScope((Instruction)prev.Operand))//IF-ELSE
+            {
+                var jump2 = (Instruction)prev.Operand;
 
                 if (op.OpCode.Code == Code.Brtrue)
                     AppendLine($"if ({Pop("bool")} ) {{");
                 else
                     AppendLine($"if (!({Pop("bool")}) ) {{");
 
+
+                var ifStart = jump;
+                var ifEnd = jump2;
+
+
+                var elseStart = op.Next;
+                var elseEnd = prev;
+
                 _indent++;
+                _ifScopeStack.Push(new IfScope()
+                {
+                    Start = ifStart,
+                    End = ifEnd.Previous
+                });
+
 
                 int stackCount = Stack.Count;
                 for (var current = ifStart; current != ifEnd;)
@@ -647,7 +690,16 @@ namespace Compiler
                     AppendLine($"{named.name} = {pop};");
                 }
 
+                _indent--;
+                _ifScopeStack.Pop();
                 AppendLine("} else {");
+
+                _indent++;
+                _ifScopeStack.Push(new IfScope()
+                {
+                    Start = elseStart,
+                    End = elseEnd
+                });
 
                 for (var current = elseStart; current != elseEnd;)
                 {
@@ -669,10 +721,12 @@ namespace Compiler
                 }
 
                 _indent--;
+                _ifScopeStack.Pop();
                 AppendLine("}");
 
                 next = jump2;
                 return true;
+
             }
             else //IF
             {
@@ -690,6 +744,11 @@ namespace Compiler
                 }
 
                 _indent++;
+                _ifScopeStack.Push(new IfScope()
+                {
+                    Start = ifStart,
+                    End = ifEnd
+                });
 
                 int stackCount = Stack.Count;
                 for (var current = ifStart; current != ifEnd;)
@@ -700,6 +759,7 @@ namespace Compiler
 
                 CheckStack(stackCount);
 
+                _ifScopeStack.Pop();
                 _indent--;
                 AppendLine("}");
 
@@ -707,8 +767,36 @@ namespace Compiler
                 return true;
             }
         }
+        private bool RecognizeBreak(Instruction op, out Instruction next)
+        {
+            next = default;
+            if (_ifScopeStack.Count == 0) return false;
+            if (op.OpCode.FlowControl != FlowControl.Cond_Branch) return false;
+            var scope = _ifScopeStack.Peek();
 
+            if (op.Next.OpCode.Code != Code.Br) return false;
+            var jump = (Instruction)op.Next.Operand;
+            if (jump != scope.End.Next) return false; // out of the loop; break;
 
+            var code = op.OpCode.Code;
+
+            if (_brComp.TryGetValue(code, out var comp))
+            {
+                PopTwo(out var left, out var right);
+                AppendLine($"if(!({left} {comp} {right})) break;");
+            }
+            else
+            {
+                switch (code)
+                {
+                    case Code.Brfalse: AppendLine($"if({Pop("bool")}) break;"); break;
+                    case Code.Brtrue: AppendLine($"if(!({Pop("bool")})) break;"); break;
+                }
+            }
+
+            next = op.Next.Next;
+            return true;
+        }
         private bool RecognizeCBranch(Instruction op, out Instruction next)
         {
             var code = op.OpCode.Code;
@@ -768,13 +856,14 @@ namespace Compiler
                 return true;
             }
         }
-
         private bool RecognizeLoop(Instruction op, out Instruction next)
         {
             next = op.Next;
             if (op.OpCode.Code != Code.Br) return false;
 
             var checkStart = (Instruction)op.Operand;
+            if (checkStart.Offset < op.Offset) return false;
+
             var current = checkStart;
             while (current.Operand is not Instruction)
             {
@@ -786,8 +875,14 @@ namespace Compiler
 
             var loopStart = (Instruction)current.Operand;
             var end = current;
+
             AppendLine($"while(true){{");
             _indent++;
+            _ifScopeStack.Push(new IfScope()
+            {
+                Start = loopStart,
+                End = end
+            });
 
             current = checkStart;
             while (current != end)
@@ -796,6 +891,7 @@ namespace Compiler
                 if (current == null) return false;
             }
 
+            //Exit the loop
             if (current.OpCode.FlowControl == FlowControl.Cond_Branch)
             {
                 if (current.OpCode.Code == Code.Blt)
@@ -809,28 +905,15 @@ namespace Compiler
                 }
             }
 
-
             current = loopStart;
             while (current != checkStart)
             {
-                if (current.OpCode.FlowControl == FlowControl.Cond_Branch)
-                {
-                    if (current.Next.OpCode.Code == Code.Br)
-                    {
-                        var jump = (Instruction)current.Next.Operand;
-                        if (jump == end.Next)// out of the loop; break;
-                        {
-                            AppendLine($"if({Pop("bool")}) break;");
-                            current = current.Next.Next;
-                        }
-                    }
-                }
-
                 current = ProcessInstruction(current);
                 if (current == null) return false;
             }
 
             _indent--;
+            _ifScopeStack.Pop();
             AppendLine("}");
 
 
@@ -901,7 +984,7 @@ namespace Compiler
             result = default;
             return false;
         }
-        public string Acc(string from, string field)
+        public string Access(string from, string field)
         {
             if (string.IsNullOrWhiteSpace(from)) return field;
             return from + "." + field;

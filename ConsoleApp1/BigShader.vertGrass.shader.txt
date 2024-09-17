@@ -17,31 +17,17 @@ float k;
 float f;
 float sr;
 float cr;
-bool tmp18;
-float3 tmp19;
-float tmp20;
-float3 tmp21;
-float3 tmp22;
-float4 tmp23;
-bool tmp24;
-v2fGrass tmp25;
 UNITY_SETUP_INSTANCE_ID(v.UNITY_VERTEX_INPUT_INSTANCE_ID);
 UNITY_TRANSFER_INSTANCE_ID(v.UNITY_VERTEX_INPUT_INSTANCE_ID, o.UNITY_VERTEX_INPUT_INSTANCE_ID);
 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o.UNITY_VERTEX_OUTPUT_STEREO);
 worldPos = mul(unity_ObjectToWorld, float4(v.vertex.xyz, 1.0));
 normal = UnityObjectToWorldNormal(v.normal);
 t = 0.0;
-tmp18 = _SMOOTH_FADE;
-if ( tmp18 ) {
-	tmp19 = mul(unity_ObjectToWorld, float4(0.0, 0.0, 0.0, 1.0));
-	tmp23 = _WorldSpaceCameraPos;
-	tmp20 = distance(tmp19, tmp23.xyz);
-	t = tmp20 - _DistMin / _DistMax - _DistMin;
+if (_SMOOTH_FADE) {
+	t = distance(mul(unity_ObjectToWorld, float4(0.0, 0.0, 0.0, 1.0)), _WorldSpaceCameraPos.xyz) - _DistMin / _DistMax - _DistMin;
 	t = saturate(t);
-	tmp21 = mul(unity_ObjectToWorld, float4(v.uv.xyz, 1.0));
-	tmp22 = UnityObjectToWorldNormal(v.normal2);
-	worldPos = lerp(worldPos, tmp21, t);
-	normal = lerp(normal, tmp22, t);
+	worldPos = lerp(worldPos, mul(unity_ObjectToWorld, float4(v.uv.xyz, 1.0)), t);
+	normal = lerp(normal, UnityObjectToWorldNormal(v.normal2), t);
 }
 o.normal = normal;
 intensOr = 1.0 - v.color.a;
@@ -61,18 +47,17 @@ f = k * p.x - _Speed * _Time.y + v.uv.w * tShift;
 sincos(f, sr, cr);
 p.x = p.x + _Amplitude * cr * intens;
 p.y = p.y + _Amplitude * sr * intens;
-p = float3.op_Addition(p, wave.xyz * intensOr * 1.3 / 0.4 * val);
+p = p + wave.xyz * intensOr * 1.3 / 0.4 * val;
 worldPos = p;
 o.worldPos = worldPos;
 o.vertex = mul(UNITY_MATRIX_VP, float4(worldPos.xyz, 1.0));
-tmp24 = _SMOOTH_FADE;
-if ( tmp24 ) {
+if (!(_SMOOTH_FADE) ) {
+	o.color = v.color;
+} else {
 	o.color = lerp(v.color, v.color2, t);
 }
-o.color = v.color;
 UNITY_TRANSFER_FOG(o.UNITY_FOG_COORDS, o.vertex);
-tmp25 = o;
-return tmp25;
+return o;
 
 }
 /*___unresolved_____
