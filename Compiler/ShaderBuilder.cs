@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Reflection.Emit;
+using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -23,6 +24,7 @@ namespace Compiler
     {
         static Dictionary<string, string> _operators = new()
         {
+            {"op_Addition","+"},
             { "op_Multiply", "*" },
             { "op_Division", "/" },
             { "op_Subtraction", "-" },
@@ -216,21 +218,21 @@ namespace Compiler
             switch (op.OpCode.Code)
             {
                 case Code.Nop:
-                    //_body.AppendLine("//nop");
+                    //ignore
                     break;
                 case Code.Pop:
                     _body.AppendLine("//" + Pop() + " is omitted");
                     break;
                 case Code.Br:
                     {
-                        if (RecognizeLoop(op, out var next))
-                        {
-                            return next;
-                        }
-
                         if (RecognizeReturn(op, out var next1))
                         {
                             return next1;
+                        }
+
+                        if (RecognizeLoop(op, out var next))
+                        {
+                            return next;
                         }
 
                         throw new InvalidOperationException();
@@ -240,15 +242,6 @@ namespace Compiler
                     //_body.Append("//conv to float");
                     break;
                 case Code.Brfalse:
-                    {
-                        if (RecognizeIf(op, out Instruction next))
-                        {
-                            return next;
-                        }
-
-                        throw new InvalidOperationException();
-                    }
-                    break;
                 case Code.Brtrue:
                     {
                         if (RecognizeIf(op, out Instruction next))
@@ -454,9 +447,7 @@ namespace Compiler
                             });
                             return op.Next;
                         }
-
-
-
+                        
                         var call = ")";
                         int count = methodRef.Parameters.ToArray().Length;
 
@@ -478,7 +469,14 @@ namespace Compiler
                         else
                         {
                             var name = methodRef.Name;
-                            if (name.StartsWith("get_"))
+
+                            if (name == ".ctor")
+                            {
+                                var expectedType = MapTypeName(methodRef.ReturnType);
+                                AppendLine($"{Pop(expectedType)} = {methodRef.DeclaringType.Name}{call}");
+                                return op.Next;
+                            }
+                            else if (name.StartsWith("get_"))
                             {
                                 name = name.Substring(4);
                                 call = name;
@@ -608,10 +606,8 @@ namespace Compiler
             if (op.OpCode.FlowControl != FlowControl.Cond_Branch) return false;
 
             var jump = (Instruction)op.Operand;
-            if (jump.Previous.OpCode.Code == Code.Br)
+            if (jump.Previous.OpCode.Code == Code.Br) //IF-ELSE
             {
-                //if-else
-
                 var jump2 = (Instruction)jump.Previous.Operand;
 
                 var ifStart = jump;
@@ -621,13 +617,9 @@ namespace Compiler
                 var elseEnd = jump.Previous;
 
                 if (op.OpCode.Code == Code.Brtrue)
-                {
                     AppendLine($"if ({Pop("bool")} ) {{");
-                }
                 else
-                {
                     AppendLine($"if (!({Pop("bool")}) ) {{");
-                }
 
                 _indent++;
 
@@ -641,11 +633,12 @@ namespace Compiler
                 NamedStack named = null;
                 if (Stack.Count > stackCount)
                 {
+                    CheckStack(stackCount + 1);
+
                     var pop = Stack.Pop();
                     _stk++;
                     named = new NamedStack()
                     {
-                        id = _stk,
                         expectedType = pop.expectedType,
                         name = "sss" + _stk
                     };
@@ -664,6 +657,8 @@ namespace Compiler
 
                 if (Stack.Count > stackCount)
                 {
+                    CheckStack(stackCount + 1);
+
                     var pop = Stack.Pop();
                     AppendLine($"{named.name} = {pop};");
 
@@ -679,7 +674,7 @@ namespace Compiler
                 next = jump2;
                 return true;
             }
-            else
+            else //IF
             {
                 var ifStart = op.Next;
                 var ifEnd = jump;
@@ -703,6 +698,8 @@ namespace Compiler
                     if (current == null) return false;
                 }
 
+                CheckStack(stackCount);
+
                 _indent--;
                 AppendLine("}");
 
@@ -710,6 +707,7 @@ namespace Compiler
                 return true;
             }
         }
+
 
         private bool RecognizeCBranch(Instruction op, out Instruction next)
         {
@@ -839,7 +837,10 @@ namespace Compiler
             next = end.Next;
             return true;
         }
-
+        private void CheckStack(int stackCount)
+        {
+            if (Stack.Count != stackCount) throw new InvalidOperationException();
+        }
         public void Push(StackItem stackItem)
         {
             Stack.Push(stackItem);
@@ -863,9 +864,7 @@ namespace Compiler
         }
         public class NamedStack
         {
-            public int id;
             public string name;
-            public int index;
             public string expectedType;
         }
         private string MapTypeName(TypeReference typeRef)
