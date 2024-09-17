@@ -37,8 +37,8 @@ namespace Compiler
         };
 
         private StringBuilder _body;
-        private readonly Stack<IfItem> _ifStack = new();
-        private readonly Dictionary<int, NamedStack> _namedStack = new();
+        //private readonly Stack<IfItem> _ifStack = new();
+        //private readonly Dictionary<int, NamedStack> _namedStack = new();
         private int _stk;
         private readonly List<NamedStack> _namedStkLocals = new();
         public readonly Stack<StackItem> Stack = new();
@@ -102,8 +102,8 @@ namespace Compiler
 
             unresolved = new StringBuilder();
 
-            _ifStack.Clear();
-            _namedStack.Clear();
+            //_ifStack.Clear();
+            //_namedStack.Clear();
             _namedStkLocals.Clear();
 
             {
@@ -206,12 +206,12 @@ namespace Compiler
 
         private Instruction ProcessInstruction(Instruction op)
         {
-            if (_ifStack.TryPeek(out var ifPeek) && ifPeek.Instruction == op)
-            {
-                UnwindIf(true);
-                _indent--;
-                AppendLine($"}}");
-            }
+            //if (_ifStack.TryPeek(out var ifPeek) && ifPeek.Instruction == op)
+            //{
+            //    UnwindIf(true);
+            //    _indent--;
+            //    AppendLine($"}}");
+            //}
 
             switch (op.OpCode.Code)
             {
@@ -228,22 +228,12 @@ namespace Compiler
                             return next;
                         }
 
-                        if (_ifStack.Count == 0)
+                        if (RecognizeReturn(op, out var next1))
                         {
-                            //empty branch
-                            return op.Next;
+                            return next1;
                         }
 
-                        var instrDef = (Instruction)op.Operand;
-                        UnwindIf(false);
-                        _ifStack.Push(
-                            new IfItem()
-                            {
-                                Code = Code.Br,
-                                Instruction = instrDef,
-                                stackCount = Stack.Count
-                            });
-                        AppendLine($"}} else {{");
+                        throw new InvalidOperationException();
                     }
                     break;
                 case Code.Conv_R4:
@@ -256,16 +246,7 @@ namespace Compiler
                             return next;
                         }
 
-                        AppendLine($"if ( {Pop("bool").text} ) {{");
-                        _indent++;
-                        var instrDef = (Instruction)op.Operand;
-                        _ifStack.Push(
-                            new IfItem()
-                            {
-                                Code = Code.Brfalse,
-                                Instruction = instrDef,
-                                stackCount = Stack.Count
-                            });
+                        throw new InvalidOperationException();
                     }
                     break;
                 case Code.Brtrue:
@@ -275,16 +256,7 @@ namespace Compiler
                             return next;
                         }
 
-                        AppendLine($"if (! {Pop("bool").text} ) {{");
-                        _indent++;
-                        var instrDef = (Instruction)op.Operand;
-                        _ifStack.Push(
-                            new IfItem()
-                            {
-                                Code = Code.Brtrue,
-                                Instruction = instrDef,
-                                stackCount = Stack.Count
-                            });
+                        throw new InvalidOperationException();
                     }
                     break;
                 case Code.Clt:
@@ -609,63 +581,134 @@ namespace Compiler
             return op.Next;
         }
 
+        private bool RecognizeReturn(Instruction op, out Instruction next)
+        {
+            var jump = (Instruction)op.Operand;
+            if (jump.OpCode.Code == Code.Ret)
+            {
+                AppendLine("return;");
+                next = op.Next;
+                return true;
+            }
+
+            if (jump.Next.OpCode.Code == Code.Ret)
+            {
+                //ignore
+                next = op.Next;
+                return true;
+            }
+
+            next = default;
+            return false;
+        }
+
         private bool RecognizeIf(Instruction op, out Instruction next)
         {
             next = default;
-            if (op.OpCode.Code != Code.Brtrue) return false;
+            if (op.OpCode.FlowControl != FlowControl.Cond_Branch) return false;
 
             var jump = (Instruction)op.Operand;
-            if (jump.Previous.OpCode.Code != Code.Br) return false;
-
-            var jump2 = (Instruction)jump.Previous.Operand;
-
-            var ifStart = jump;
-            var ifEnd = jump2;
-
-            var elseStart = op.Next;
-            var elseEnd = jump.Previous;
-
-            AppendLine($"if ({Pop("bool")} ) {{");
-
-            int stackCount = Stack.Count;
-            for (var current = ifStart; current != ifEnd;)
+            if (jump.Previous.OpCode.Code == Code.Br)
             {
-                current = ProcessInstruction(current);
-                if (current == null) return false;
-            }
+                //if-else
 
-            NamedStack named = null;
-            if (Stack.Count > stackCount)
-            {
-                var pop = Stack.Pop();
-                _stk++;
-                named = new NamedStack()
+                var jump2 = (Instruction)jump.Previous.Operand;
+
+                var ifStart = jump;
+                var ifEnd = jump2;
+
+                var elseStart = op.Next;
+                var elseEnd = jump.Previous;
+
+                if (op.OpCode.Code == Code.Brtrue)
                 {
-                    id = _stk,
-                    expectedType = pop.expectedType,
-                    name = "sss" + _stk
-                };
-                _namedStkLocals.Add(named);
+                    AppendLine($"if ({Pop("bool")} ) {{");
+                }
+                else
+                {
+                    AppendLine($"if (!({Pop("bool")}) ) {{");
+                }
 
-                AppendLine($"{named.name} = {pop};");
+                _indent++;
+
+                int stackCount = Stack.Count;
+                for (var current = ifStart; current != ifEnd;)
+                {
+                    current = ProcessInstruction(current);
+                    if (current == null) return false;
+                }
+
+                NamedStack named = null;
+                if (Stack.Count > stackCount)
+                {
+                    var pop = Stack.Pop();
+                    _stk++;
+                    named = new NamedStack()
+                    {
+                        id = _stk,
+                        expectedType = pop.expectedType,
+                        name = "sss" + _stk
+                    };
+                    _namedStkLocals.Add(named);
+
+                    AppendLine($"{named.name} = {pop};");
+                }
+
+                AppendLine("} else {");
+
+                for (var current = elseStart; current != elseEnd;)
+                {
+                    current = ProcessInstruction(current);
+                    if (current == null) return false;
+                }
+
+                if (Stack.Count > stackCount)
+                {
+                    var pop = Stack.Pop();
+                    AppendLine($"{named.name} = {pop};");
+
+                    Push(new StackItem()
+                    {
+                        text = named.name
+                    });
+                }
+
+                _indent--;
+                AppendLine("}");
+
+                next = jump2;
+                return true;
             }
-
-            AppendLine("} else {");
-
-            for (var current = elseStart; current != elseEnd;)
+            else
             {
-                current = ProcessInstruction(current);
-                if (current == null) return false;
-            }
+                var ifStart = op.Next;
+                var ifEnd = jump;
 
-            if (Stack.Count > stackCount)
-            {
-                var pop = Stack.Pop();
-                AppendLine($"{named.name} = {pop};");
-            }
+                //Invert skip span
+                if (op.OpCode.Code == Code.Brtrue)
+                {
+                    AppendLine($"if (!({Pop("bool")})) {{");
+                }
+                else
+                {
+                    AppendLine($"if ({Pop("bool")}) {{");
+                }
 
-            next = jump2;
-            return true;
+                _indent++;
+
+                int stackCount = Stack.Count;
+                for (var current = ifStart; current != ifEnd;)
+                {
+                    current = ProcessInstruction(current);
+                    if (current == null) return false;
+                }
+
+                _indent--;
+                AppendLine("}");
+
+                next = ifEnd;
+                return true;
+            }
         }
 
         private bool RecognizeCBranch(Instruction op, out Instruction next)
@@ -797,90 +840,12 @@ namespace Compiler
             return true;
         }
 
-        void UnwindIf(bool exit)
-        {
-            var ifItem = _ifStack.Peek();
-            if (Stack.Count > ifItem.stackCount)
-            {
-                var list = new List<StackItem>();
-
-                while (Stack.Count > ifItem.stackCount)
-                {
-                    var popped = Stack.Pop();
-                    if (popped.name == null)
-                    {
-                        _stk++;
-                        var named = new NamedStack()
-                        {
-                            id = _stk,
-                            name = "stk" + _stk,
-                            index = Stack.Count
-                        };
-                        _namedStack.Add(named.index, named);
-                        popped.name = named.name;
-                        AppendLine($"{popped.name} = {popped.text};");
-                    }
-
-                    if (exit)
-                    {
-                        list.Add(popped);
-                        var named = _namedStack[Stack.Count];
-                        _namedStkLocals.Add(named);
-                        _namedStack.Remove(Stack.Count);
-                    }
-                }
-
-                if (exit)
-                {
-                    foreach (var item in list)
-                    {
-                        Stack.Push(item);
-
-                    }
-
-
-                }
-            }
-
-            _ifStack.Pop();
-        }
-
         public void Push(StackItem stackItem)
         {
-            int index = Stack.Count;
-            if (_namedStack.TryGetValue(index, out var namedStack))
-            {
-                AppendLine($"{namedStack.name} = {stackItem.text}");
-
-                if (stackItem.expectedType != null)
-                {
-                    namedStack.expectedType = stackItem.expectedType;
-                }
-
-                Stack.Push(new StackItem()
-                {
-                    name = namedStack.name,
-                    def = stackItem.def,
-                    text = namedStack.name,
-                    expectedType = stackItem.expectedType
-                });
-            }
-            else
-            {
-                Stack.Push(stackItem);
-            }
+            Stack.Push(stackItem);
         }
         public StackItem Pop(string expectedType = null)
         {
-            int index = Stack.Count - 1;
-            if (_namedStack.TryGetValue(index, out var namedStack))
-            {
-                if (expectedType != null)
-                {
-                    namedStack.expectedType = expectedType;
-                }
-            }
-
             return Stack.Pop();
         }
         public StackItem Peek()
@@ -895,12 +860,6 @@ namespace Compiler
             }
 
             _body.AppendLine(line);
-        }
-        public class IfItem
-        {
-            public Instruction Instruction;
-            public int stackCount;
-            public Code Code;
         }
         public class NamedStack
         {
