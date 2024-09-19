@@ -3,6 +3,7 @@ using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
 using System.Globalization;
 using System.Text;
+using Lemon.Tools;
 using FlowControl = Mono.Cecil.Cil.FlowControl;
 using OpCodes = Mono.Cecil.Cil.OpCodes;
 
@@ -23,7 +24,15 @@ namespace Compiler
             {"Single", "float" },
             {"Double", "double" },
             {"Boolean", "bool" },
-            {"Int32", "int" }
+            {"Int32", "int" },
+
+            {"float2", "vec2"},
+            {"float3", "vec3"},
+            {"float4", "vec4"},
+
+            {"fixed2", "vec2"},
+            {"fixed3", "vec3"},
+            {"fixed4", "vec4"},
         };
 
         private Dictionary<Code, string> _brComp = new()
@@ -34,6 +43,13 @@ namespace Compiler
             { Code.Ble, "<=" },
             { Code.Beq, "==" },
         };
+
+        public enum ProgramType
+        {
+            None,
+            Vertex,
+            Fragment
+        }
 
         private StringBuilder _body;
         private int _stk;
@@ -47,13 +63,18 @@ namespace Compiler
         private MethodDefinition _method;
         private HashSet<Instruction> _returnBranches;
 
+        private Dictionary<FieldReference, string> _attributes = new();
+        private Dictionary<FieldReference, string> _varyings = new();
+        private Dictionary<FieldReference, string> _uniforms = new();
+        private ProgramType _programType;
+
         internal void Build(string path, TypeDefinition type)
         {
             var method2 = type.GetMethods().First(p => p.Name.StartsWith("Frag", StringComparison.InvariantCultureIgnoreCase));
-            Build(path, type, method2);
+            Build(path, type, method2, ProgramType.Fragment);
 
             var method1 = type.GetMethods().First(p => p.Name.StartsWith("Vert", StringComparison.InvariantCultureIgnoreCase));
-            Build(path, type, method1);
+            Build(path, type, method1, ProgramType.Vertex);
         }
 
         class LocalVar
@@ -72,49 +93,56 @@ namespace Compiler
             }
         }
 
-        internal string Build(string path, TypeDefinition type, MethodDefinition method)
+        internal string Build(string path, TypeDefinition type, MethodDefinition method, ProgramType programType)
         {
             Stack.Clear();
+
+            _programType = programType;
             _indent = 0;
             _body = new StringBuilder();
             method.Body.SimplifyMacros();
 
             _method = method;
 
+            BuildVaryings(type, method);
+
             LocalsSetup(method);
 
-            var instB = new StringBuilder();
-            var instr = method.Body.Instructions.ToArray();
-            foreach (var op in instr)
-            {
-                instB.Append(op.OpCode.Code);
-                instB.Append(" ");
-                if (op.Operand != null)
-                {
-                    instB.Append(op.Operand);
-                    instB.Append(" ");
-                    instB.Append(op.Operand.GetType().Name);
-                }
-
-                instB.AppendLine();
-            }
-
-            File.WriteAllText(path + type.Name + "." + method.Name + ".opcodes.txt", instB.ToString());
+            DumpInstructions(path, type, method);
 
             unresolved = new StringBuilder();
 
             _namedStkLocals.Clear();
 
+            _indent++;
+
+            var op = method.Body.Instructions[0];
+            while (op != null)
             {
-                var op = instr[0];
-                while (op != null)
-                {
-                    op = ProcessInstruction(op);
-                }
+                op = ProcessInstruction(op);
             }
+            _indent--;
 
             var sb = new StringBuilder();
-            sb.AppendLine($"{method.Name}(){{");
+
+            foreach (var field in _attributes.Keys)
+            {
+                sb.AppendLine($"attribute {MapTypeName(field.FieldType)} {field.Name};");
+            }
+
+            sb.AppendLine();
+            foreach (var field in _uniforms.Keys)
+            {
+                sb.AppendLine($"uniform {MapTypeName(field.FieldType)} {field.Name};");
+            }
+            sb.AppendLine();
+            foreach (var field in _varyings.Keys)
+            {
+                sb.AppendLine($"varying {MapTypeName(field.FieldType)} {field.Name};");
+            }
+            sb.AppendLine();
+            sb.AppendLine($"main(){{");
+
 
             for (int i = 0; i < _locals.Length; i++)
             {
@@ -133,6 +161,7 @@ namespace Compiler
             }
 
             sb.AppendLine(_body.ToString());
+
             sb.AppendLine("}");
             sb.AppendLine("/*___unresolved_____");
             sb.AppendLine(unresolved.ToString());
@@ -144,6 +173,79 @@ namespace Compiler
 
             var output = _body.ToString();
             return output;
+        }
+
+        private static void DumpInstructions(string path, TypeDefinition type, MethodDefinition method)
+        {
+            var instB = new StringBuilder();
+            var instr = method.Body.Instructions.ToArray();
+            foreach (var op in instr)
+            {
+                instB.Append(op.OpCode.Code);
+                instB.Append(" ");
+                if (op.Operand != null)
+                {
+                    instB.Append(op.Operand);
+                    instB.Append(" ");
+                    instB.Append(op.Operand.GetType().Name);
+                }
+
+                instB.AppendLine();
+            }
+
+            File.WriteAllText(path + type.Name + "." + method.Name + ".opcodes.txt", instB.ToString());
+        }
+
+        private void BuildVaryings(TypeDefinition typeDefinition, MethodDefinition method)
+        {
+            _varyings.Clear();
+            _attributes.Clear();
+            _uniforms.Clear();
+
+
+            if (_programType == ProgramType.Vertex)
+            {
+                foreach (var parameter in method.Parameters.ToArray())
+                {
+                    foreach (var field in parameter.ParameterType.Resolve().Fields)
+                    {
+                        _attributes.Add(field, field.Name);
+                    }
+                }
+
+                foreach (var field in method.ReturnType.Resolve().Fields)
+                {
+                    _varyings.Add(field, field.Name);
+                }
+
+                foreach (var field in typeDefinition.Fields)
+                {
+                    _uniforms.Add(field, field.Name);
+                }
+            }
+
+            if (_programType == ProgramType.Fragment)
+            {
+                foreach (var parameter in method.Parameters.ToArray())
+                {
+                    if (parameter.ParameterType.IsPrimitive)
+                    {
+                        
+                    }
+                    else
+                    {
+                        foreach (var field in parameter.ParameterType.Resolve().Fields)
+                        {
+                            _varyings.Add(field, field.Name);
+                        }
+                    }
+                }
+
+                foreach (var field in typeDefinition.Fields)
+                {
+                    _uniforms.Add(field, field.Name);
+                }
+            }
         }
 
         private void LocalsSetup(MethodDefinition method)
@@ -200,6 +302,13 @@ namespace Compiler
                         localVar.canBeOmitted = true;
                     }
                 }
+
+
+                var name = _locals[i].name;
+                if (_attributes.ContainsValue(name) || _varyings.ContainsValue(name) || _uniforms.ContainsValue(name))
+                {
+                    _locals[i].name = "l" + i +"_"+ name;
+                }
             }
 
 
@@ -239,7 +348,7 @@ namespace Compiler
                     break;
                 case Code.Br:
                     {
-                        if (RecognizeReturnBranch(op, out var next1)) return next1;
+                        if (RecognizeReturn(op, out var next1)) return next1;
                         if (RecognizeLoop(op, out var next)) return next;
 
                         throw new InvalidOperationException();
@@ -268,7 +377,17 @@ namespace Compiler
                     break;
                 case Code.Ret:
                     {
-                        AppendLine($"return {Pop("float4")};");
+                        var typeName = MapTypeName(_method.ReturnType);
+                        var popped = Pop(typeName);
+
+                        if (MapReturn(popped, out var text))
+                        {
+                            AppendLine(text);
+                        }
+                        else
+                        {
+                            AppendLine($"return {popped};");
+                        }
                     }
                     break;
                 case Code.Ldarg:
@@ -331,26 +450,54 @@ namespace Compiler
                 case Code.Ldflda:
                     {
                         var fieldRef = (FieldReference)op.Operand;
-                        var typeName = MapTypeName(fieldRef.DeclaringType);
-                        Push(new StackItem()
+                        var typeNameFrom = MapTypeName(fieldRef.DeclaringType);
+                        var typeNameTo = MapTypeName(fieldRef.FieldType);
+
+                        if (MapField(fieldRef, out var text))
                         {
-                            expectedType = typeName,
-                            text = Access(Pop().text, fieldRef.Name),
-                            def = fieldRef
-                        });
+                            Pop(typeNameFrom);
+                            Push(new StackItem()
+                            {
+                                expectedType = typeNameTo,
+                                text = text,
+                                def = fieldRef
+                            });
+                        }
+                        else
+                        {
+                            Push(new StackItem()
+                            {
+                                expectedType = typeNameTo,
+                                text = Access(Pop(typeNameFrom).text, fieldRef.Name),
+                                def = fieldRef
+                            });
+                        }
                     }
                     break;
                 case Code.Ldsfld:
                 case Code.Ldsflda:
                     {
                         var fieldRef = (FieldReference)op.Operand;
-                        var typeName = MapTypeName(fieldRef.DeclaringType);
-                        Push(new StackItem()
+                        var typeName = MapTypeName(fieldRef.FieldType);
+
+                        if (MapField(fieldRef, out var text))
                         {
-                            expectedType = typeName,
-                            text = fieldRef.Name,
-                            def = fieldRef
-                        });
+                            Push(new StackItem()
+                            {
+                                expectedType = typeName,
+                                text = text,
+                                def = fieldRef
+                            });
+                        }
+                        else
+                        {
+                            Push(new StackItem()
+                            {
+                                expectedType = typeName,
+                                text = fieldRef.Name,
+                                def = fieldRef
+                            });
+                        }
                     }
                     break;
                 case Code.Ldelem_Any:
@@ -374,7 +521,15 @@ namespace Compiler
                         var fieldRef = (FieldReference)op.Operand;
                         var typeName = MapTypeName(fieldRef.DeclaringType);
                         PopTwo(out var left, out var right, typeName);
-                        AppendLine($"{Access(left.text, fieldRef.Name)} = {right.text};");
+
+                        if (MapField(fieldRef, out var text))
+                        {
+                            AppendLine($"{text} = {right.text};");
+                        }
+                        else
+                        {
+                            AppendLine($"{Access(left.text, fieldRef.Name)} = {right.text};");
+                        }
                     }
                     break;
                 case Code.Initobj:
@@ -574,6 +729,48 @@ namespace Compiler
             return op.Next;
         }
 
+        private bool MapReturn(StackItem popped, out string text)
+        {
+            if (_programType == ProgramType.Vertex)
+            {
+                text = $"gl_Position = {popped}; return;";
+                return true;
+            }
+
+            if (_programType == ProgramType.Fragment)
+            {
+                text = $"gl_FragColor = {popped}; return;";
+                return true;
+            }
+
+            text = default;
+            return false;
+        }
+
+        private bool MapField(FieldReference fieldRef, out string text)
+        {
+            if (_varyings.TryGetValue(fieldRef, out var value))
+            {
+                text = value;
+                return true;
+            }
+
+            if (_uniforms.TryGetValue(fieldRef, out var value1))
+            {
+                text = value1;
+                return true;
+            }
+
+            if (_attributes.TryGetValue(fieldRef, out var value2))
+            {
+                text = value2;
+                return true;
+            }
+
+            text = default;
+            return false;
+        }
+
         private string PopParameters(MethodReference methodRef)
         {
             var parameters = methodRef.Parameters.ToArray();
@@ -592,28 +789,6 @@ namespace Compiler
             return result;
         }
 
-        private bool RecognizeReturnBranch(Instruction op, out Instruction next)
-        {
-            if (_returnBranches.Contains(op))
-            {
-                var jump = (Instruction)op.Operand;
-                var value = (VariableReference)jump.Operand;
-                var loc = _locals.First(p => p.definition == value);
-
-                if (_ifScopeStack.Count > 0)
-                {
-                    AppendLine($"return {loc.name};");
-                }
-
-
-                next = op.Next;
-                return true;
-            }
-
-            next = default;
-            return false;
-        }
-
         private bool IsInScope(Instruction op)
         {
             if (_ifScopeStack.TryPeek(out var ifScope))
@@ -626,6 +801,36 @@ namespace Compiler
 
             return true;
         }
+
+        private bool RecognizeReturn(Instruction op, out Instruction next)
+        {
+            if (!_returnBranches.Contains(op))
+            {
+                next = default;
+                return false;
+            }
+
+            var jump = (Instruction)op.Operand;
+            var value = (VariableReference)jump.Operand;
+            var loc = _locals.First(p => p.definition == value);
+
+            if (_ifScopeStack.Count > 0)
+            {
+                if (MapReturn(new StackItem() { text = loc.name }, out var text))
+                {
+                    AppendLine(text);
+                }
+                else
+                {
+                    AppendLine($"return {loc.name};");
+                }
+            }
+
+
+            next = op.Next;
+            return true;
+        }
+
         private bool RecognizeIf(Instruction op, out Instruction next)
         {
             next = default;
@@ -891,17 +1096,21 @@ namespace Compiler
                 if (current == null) return false;
             }
 
-            //Exit the loop
+            //Exit the loop by condition
             if (current.OpCode.FlowControl == FlowControl.Cond_Branch)
             {
-                if (current.OpCode.Code == Code.Blt)
+                if (_brComp.TryGetValue(current.OpCode.Code, out var comp))
                 {
                     PopTwo(out var left, out var right);
-                    AppendLine($"if(!({left}<{right})) break;");
+                    AppendLine($"if(!({left} {comp} {right})) break;");
                 }
                 else
                 {
-                    AppendLine($"if(!({Pop("bool")})) break;");
+                    switch (current.OpCode.Code)
+                    {
+                        case Code.Brfalse: AppendLine($"if({Pop("bool")}) break;"); break;
+                        case Code.Brtrue: AppendLine($"if(!({Pop("bool")})) break;"); break;
+                    }
                 }
             }
 
@@ -953,6 +1162,10 @@ namespace Compiler
         private string MapTypeName(TypeReference typeRef)
         {
             if (_typeMap.TryGetValue(typeRef.Name, out var name)) return name;
+            if (typeRef.IsArray && _typeMap.TryGetValue(typeRef.GetElementType().Name, out var elType))
+            {
+                return elType + "[]";
+            }
             return typeRef.Name;
         }
         private bool MapMethod(MethodReference methodRef, string call, out string result)
