@@ -63,9 +63,8 @@ namespace Compiler
         private MethodDefinition _method;
         private HashSet<Instruction> _returnBranches;
 
-        private Dictionary<FieldReference, string> _attributes = new();
-        private Dictionary<FieldReference, string> _varyings = new();
-        private Dictionary<FieldReference, string> _uniforms = new();
+        private Dictionary<FieldReference, Var> _varyings = new();
+
         private ProgramType _programType;
 
         internal void Build(string path, TypeDefinition type)
@@ -85,12 +84,30 @@ namespace Compiler
             public int load;
             public bool canBeRef;
             public bool canBeOmitted;
+            public bool canInline;
+            public bool isDeclared;
             public StackItem RefValue { get; set; }
 
             public override string ToString()
             {
                 return name;
             }
+        }
+
+        enum VarType
+        {
+            None,
+            Varying,
+            Attribute,
+            Uniform
+        }
+        class Var
+        {
+            public VarType Type;
+            public TypeReference FieldType;
+            public string Name;
+            public bool IsUsed;
+            public bool BuiltIn;
         }
 
         internal string Build(string path, TypeDefinition type, MethodDefinition method, ProgramType programType)
@@ -125,18 +142,18 @@ namespace Compiler
 
             var sb = new StringBuilder();
 
-            foreach (var field in _attributes.Keys)
+            foreach (var field in _varyings.Values.Where(p=> p.IsUsed && !p.BuiltIn && p.Type == VarType.Attribute))
             {
                 sb.AppendLine($"attribute {MapTypeName(field.FieldType)} {field.Name};");
             }
 
             sb.AppendLine();
-            foreach (var field in _uniforms.Keys)
+            foreach (var field in _varyings.Values.Where(p => p.IsUsed && !p.BuiltIn && p.Type == VarType.Uniform))
             {
                 sb.AppendLine($"uniform {MapTypeName(field.FieldType)} {field.Name};");
             }
             sb.AppendLine();
-            foreach (var field in _varyings.Keys)
+            foreach (var field in _varyings.Values.Where(p => p.IsUsed && p.Type == VarType.Varying))
             {
                 sb.AppendLine($"varying {MapTypeName(field.FieldType)} {field.Name};");
             }
@@ -148,6 +165,7 @@ namespace Compiler
             {
                 if (_locals[i].canBeOmitted) continue;
                 if (_locals[i].canBeRef) continue;
+                if (_locals[i].canInline) continue;
                 sb.AppendLine(
                     $"{MapTypeName(_locals[i].definition.VariableType)} {_locals[i]};"
                 );
@@ -199,9 +217,6 @@ namespace Compiler
         private void BuildVaryings(TypeDefinition typeDefinition, MethodDefinition method)
         {
             _varyings.Clear();
-            _attributes.Clear();
-            _uniforms.Clear();
-
 
             if (_programType == ProgramType.Vertex)
             {
@@ -209,18 +224,51 @@ namespace Compiler
                 {
                     foreach (var field in parameter.ParameterType.Resolve().Fields)
                     {
-                        _attributes.Add(field, field.Name);
+                        
+                            _varyings.Add(field,
+                                new Var()
+                                {
+                                    Name = field.Name,
+                                    FieldType = field.FieldType,
+                                    Type = VarType.Attribute
+                                });
                     }
                 }
 
                 foreach (var field in method.ReturnType.Resolve().Fields)
                 {
-                    _varyings.Add(field, field.Name);
+                    if (field.HasAttribute("POSITIONAttribute"))
+                    {
+                        _varyings.Add(field,
+                            new Var()
+                            {
+                                Name = "gl_Position",
+                                BuiltIn = true,
+                                FieldType = field.FieldType,
+                                Type = VarType.Attribute
+                            });
+                    }
+                    else
+                    {
+                        _varyings.Add(field,
+                            new Var()
+                            {
+                                Name = field.Name,
+                                FieldType = field.FieldType,
+                                Type = VarType.Varying
+                            });
+                    }
                 }
 
                 foreach (var field in typeDefinition.Fields)
                 {
-                    _uniforms.Add(field, field.Name);
+                    _varyings.Add(field,
+                        new Var()
+                        {
+                            Name = field.Name,
+                            FieldType = field.FieldType,
+                            Type = VarType.Uniform
+                        });
                 }
             }
 
@@ -230,20 +278,51 @@ namespace Compiler
                 {
                     if (parameter.ParameterType.IsPrimitive)
                     {
-                        
+
                     }
                     else
                     {
                         foreach (var field in parameter.ParameterType.Resolve().Fields)
                         {
-                            _varyings.Add(field, field.Name);
+                            if (field.HasAttribute("POSITIONAttribute"))
+                            {
+
+                            }
+                            else
+                            {
+                                _varyings.Add(field,
+                                    new Var()
+                                    {
+                                        Name = field.Name,
+                                        FieldType = field.FieldType,
+                                        Type = VarType.Varying
+                                    });
+                            }
                         }
                     }
                 }
 
                 foreach (var field in typeDefinition.Fields)
                 {
-                    _uniforms.Add(field, field.Name);
+                    _varyings.Add(field,
+                        new Var()
+                        {
+                            Name = field.Name,
+                            FieldType = field.FieldType,
+                            Type = VarType.Uniform
+                        });
+                }
+            }
+
+            var instr = method.Body.Instructions.ToArray();
+            foreach (var op in instr)
+            {
+                if (op.Operand is FieldDefinition field)
+                {
+                    if (_varyings.TryGetValue(field, out var value))
+                    {
+                        value.IsUsed = true;
+                    }
                 }
             }
         }
@@ -287,11 +366,13 @@ namespace Compiler
                 var dbg = debugLocals.FirstOrDefault(p => p.Index == i);
                 if (dbg != null)
                 {
-                    _locals[i].name = dbg.Name;
+                    localVar.name = dbg.Name;
+                    localVar.canInline = true;
+
                 }
                 else
                 {
-                    _locals[i].name = "tmp" + i;
+                    localVar.name = "tmp" + i;
                     if (localVar.set == 1 && localVar.load == 1)
                     {
                         localVar.canBeRef = true;
@@ -305,7 +386,7 @@ namespace Compiler
 
 
                 var name = _locals[i].name;
-                if (_attributes.ContainsValue(name) || _varyings.ContainsValue(name) || _uniforms.ContainsValue(name))
+                if (_varyings.Values.Any(p=>p.Name == name))
                 {
                     _locals[i].name = "l" + i +"_"+ name;
                 }
@@ -442,7 +523,15 @@ namespace Compiler
                         }
                         else
                         {
-                            AppendLine($"{_locals[varRef.Index].name} = {Pop(typeName).text};");
+                            if (local.canInline &&!local.isDeclared)
+                            {
+                                local.isDeclared = true;
+                                AppendLine($"{typeName} {local.name} = {Pop(typeName).text};");
+                            }
+                            else
+                            {
+                                AppendLine($"{local.name} = {Pop(typeName).text};");
+                            }
                         }
                     }
                     break;
@@ -733,7 +822,7 @@ namespace Compiler
         {
             if (_programType == ProgramType.Vertex)
             {
-                text = $"gl_Position = {popped}; return;";
+                text = $"return;//gl_Position is set";
                 return true;
             }
 
@@ -751,19 +840,7 @@ namespace Compiler
         {
             if (_varyings.TryGetValue(fieldRef, out var value))
             {
-                text = value;
-                return true;
-            }
-
-            if (_uniforms.TryGetValue(fieldRef, out var value1))
-            {
-                text = value1;
-                return true;
-            }
-
-            if (_attributes.TryGetValue(fieldRef, out var value2))
-            {
-                text = value2;
+                text = value.Name;
                 return true;
             }
 
