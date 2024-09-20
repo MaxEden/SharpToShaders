@@ -35,6 +35,11 @@ namespace Compiler
             {"fixed4", "vec4"},
         };
 
+        private static Dictionary<string, string> _methodMap = new()
+        {
+            { "tex2D", "texture2D" }
+        };
+
         private Dictionary<Code, string> _brComp = new()
         {
             { Code.Blt, "<" },
@@ -591,7 +596,7 @@ namespace Compiler
                     break;
                 case Code.Ldelem_Any:
                     {
-                        var typeDef = (TypeDefinition)op.Operand;
+                        var typeDef = (TypeReference)op.Operand;
                         var typeName = MapTypeName(typeDef);
                         var typeElemName = MapTypeName(typeDef.GetElementType());
 
@@ -634,6 +639,7 @@ namespace Compiler
                     }
                     break;
                 case Code.Ldind_R4: //loads address
+                case Code.Ldobj:
                     {
                         //Same stack content as a value
                     }
@@ -642,6 +648,13 @@ namespace Compiler
                     {
                         PopTwo(out var left, out var right, "int");
                         AppendLine(left + " = " + right + ";");
+                    }
+                    break;
+                case Code.Stobj:
+                {
+                    var typeRef = (TypeReference)op.Operand;
+                    PopTwo(out var left, out var right, MapTypeName(typeRef));
+                    AppendLine(left + " = " + right + ";");
                     }
                     break;
                 case Code.Ldc_R4:
@@ -930,7 +943,7 @@ namespace Compiler
                 if (op.OpCode.Code == Code.Brtrue)
                     AppendLine($"if ({Pop("bool")} ) {{");
                 else
-                    AppendLine($"if (!({Pop("bool")}) ) {{");
+                    AppendLine($"if (!{Pop("bool").btext} ) {{");
 
 
                 var ifStart = jump;
@@ -1018,7 +1031,7 @@ namespace Compiler
                 //Invert skip span
                 if (op.OpCode.Code == Code.Brtrue)
                 {
-                    AppendLine($"if (!({Pop("bool")})) {{");
+                    AppendLine($"if (!{Pop("bool").btext}) {{");
                 }
                 else
                 {
@@ -1072,7 +1085,7 @@ namespace Compiler
                 switch (code)
                 {
                     case Code.Brfalse: AppendLine($"if({Pop("bool")}) break;"); break;
-                    case Code.Brtrue: AppendLine($"if(!({Pop("bool")})) break;"); break;
+                    case Code.Brtrue: AppendLine($"if(!{Pop("bool").btext}) break;"); break;
                 }
             }
 
@@ -1101,7 +1114,8 @@ namespace Compiler
                             expectedType = "bool",
                             text = ldc == 1
                                 ? $"{left} {oper} {right}"
-                                : $"!({left} {oper} {right})"
+                                : $"!({left} {oper} {right})",
+                            needsBrackets = true
                         });
                         next = op.Next.Next.Next;
                         return true;
@@ -1119,7 +1133,8 @@ namespace Compiler
                     Push(new StackItem()
                     {
                         expectedType = "bool",
-                        text = $"{left} {oper} {right}"
+                        text = $"{left} {oper} {right}",
+                        needsBrackets = true
                     });
 
                     next = op.Next;
@@ -1132,7 +1147,8 @@ namespace Compiler
                 Push(new StackItem()
                 {
                     expectedType = "int",
-                    text = $"({left} {oper} {right})?1:0"
+                    text = $"({left} {oper} {right})?1:0",
+                    needsBrackets = true
                 });
                 next = op.Next;
                 return true;
@@ -1186,7 +1202,7 @@ namespace Compiler
                     switch (current.OpCode.Code)
                     {
                         case Code.Brfalse: AppendLine($"if({Pop("bool")}) break;"); break;
-                        case Code.Brtrue: AppendLine($"if(!({Pop("bool")})) break;"); break;
+                        case Code.Brtrue: AppendLine($"if(!{Pop("bool").btext}) break;"); break;
                     }
                 }
             }
@@ -1261,6 +1277,11 @@ namespace Compiler
 
             if (methodRef.DeclaringType.Name == "Unity")
             {
+                if (_methodMap.TryGetValue(methodRef.Name, out var met))
+                {
+                    result = met + call;
+                    return true;
+                }
                 result = methodRef.Name + call;
                 return true;
             }
@@ -1284,15 +1305,18 @@ namespace Compiler
             right = Pop();
             left = Pop(expectedLeftType);
         }
+
+        public string Brackets(string text) => "(" + text + ")";
         public void Operator(string oper)
         {
             PopTwo(out var left, out var right);
+
             Push(new StackItem()
             {
                 expectedType = left.expectedType,
-                text = left.text + " " + oper + " " + right.text
-            }
-            );
+                text = left.btext + " " + oper + " " + right.btext,
+                needsBrackets = true
+            });
         }
     }
 }

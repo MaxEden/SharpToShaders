@@ -1,131 +1,121 @@
-fragGrass(){
-bool v;
-int a;
-int b;
-float sum;
-float sum2;
-int k;
-float3 dir;
-float3 norm;
-float3 lightDir;
-float3 viewDir;
-float flare;
-float transl;
-float fnorm;
-float sun;
-float sunL;
-float3 coeff;
-float through;
-float4 colorLight;
-float4 colorShadow;
-float4 lcolor;
-float4 sunColor;
-float4 color;
-float4 throughColor;
-float4 result;
-fixed4 tmp26;
-fixed4 result27;
+
+uniform ShaderFeature _UNITY_LIGHTING;
+uniform vec4 _ColorLight;
+uniform vec4 _ColorShadow;
+uniform float _Softness;
+uniform vec4[] Positions;
+
+varying vec4 color;
+varying vec3 normal;
+varying vec3 worldPos;
+varying UNITY_VERTEX_INPUT_INSTANCE_ID UNITY_VERTEX_INPUT_INSTANCE_ID;
+varying UNITY_VERTEX_OUTPUT_STEREO UNITY_VERTEX_OUTPUT_STEREO;
+varying UNITY_FOG_COORDS UNITY_FOG_COORDS;
+
+main(){
+vec4 tmp26;
+vec4 result27;
 int tmp30;
 int tmp38;
-float3 sss1;
+vec3 sss1;
 float sss2;
-v = 1;
-a = 1;
-b = 2;
-while(true){
-	if(!(v)) break;
-	if (a > b) {
-		a = b;
-		if (b > 0) {
-			tmp26 = new fixed4();
-			result27 = tmp26;
-			return result27;
-		}
-	}
-	if(a > 10) break;
-}
-UNITY_SETUP_INSTANCE_ID(i.UNITY_VERTEX_INPUT_INSTANCE_ID);
-UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i.UNITY_VERTEX_OUTPUT_STEREO);
-sum = 0.0;
-tmp30 = 0;
-while(true){
-	if(!(tmp30 < 10)) break;
-	sum = sum + Positions[tmp30].x;
-	tmp30 = tmp30 + 1;
-}
-sum = sum + 12345.0;
-sum2 = 0.0;
-k = 0;
-while(true){
-	if(!(k < 10)) break;
-	k = k / 2;
-	if(k + 1 > 15) break;
-	sum2 = sum2 + Positions[k].x;
-	k = k + 1;
-	if (facing) {
-		if (sum > 15.0) {
-			tmp38 = 0;
-			while(true){
-				if(!(tmp38 < 13)) break;
-				sum = sum + tmp38 * 2;
-				tmp38 = tmp38 + 1;
+	bool v = 1;
+	int a = 1;
+	int b = 2;
+	while(true){
+		if(!v) break;
+		if (a > b) {
+			a = b;
+			if (b > 0) {
+				tmp26 = new fixed4();
+				result27 = tmp26;
+				gl_FragColor = result27; return;
 			}
 		}
-		if (sum2 < sum) {
-			tmp26 = new fixed4();
-			result27 = tmp26;
-			return result27;
+		if(a > 10) break;
+	}
+	UNITY_SETUP_INSTANCE_ID(UNITY_VERTEX_INPUT_INSTANCE_ID);
+	UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(UNITY_VERTEX_OUTPUT_STEREO);
+	float sum = 0.0;
+	tmp30 = 0;
+	while(true){
+		if(!(tmp30 < 10)) break;
+		sum = sum + Positions[tmp30].x;
+		tmp30 = tmp30 + 1;
+	}
+	sum = sum + 12345.0;
+	float sum2 = 0.0;
+	int k = 0;
+	while(true){
+		if(!(k < 10)) break;
+		k = k / 2;
+		if(k + 1 > 15) break;
+		sum2 = sum2 + Positions[k].x;
+		k = k + 1;
+		if (facing) {
+			if (sum > 15.0) {
+				tmp38 = 0;
+				while(true){
+					if(!(tmp38 < 13)) break;
+					sum = sum + (tmp38 * 2);
+					tmp38 = tmp38 + 1;
+				}
+			}
+			if (sum2 < sum) {
+				tmp26 = new fixed4();
+				result27 = tmp26;
+				gl_FragColor = result27; return;
+			}
 		}
 	}
-}
-sum2 = sum2 + 5678.0;
-if (facing ) {
-	sss1 = _WorldSpaceLightPos0.xyz * 2.0;
-} else {
-	sss1 = i.worldPos.xyz - _WorldSpaceCameraPos.xyz;
-}
-dir = sss1;
-if (facing ) {
-	sss2 = 1.0;
-} else {
-	sss2 = -1.0;
-}
-norm = normalize(sss2 * i.normal);
-lightDir = -normalize(_WorldSpaceLightPos0.xyz);
-viewDir = normalize(i.worldPos.xyz - _WorldSpaceCameraPos.xyz);
-flare = saturate(dot(viewDir, -lightDir));
-flare = flare * flare * flare;
-transl = saturate(1.5 * 1.0 - i.color.a);
-fnorm = saturate(dot(norm, lightDir) - 0.5);
-sun = dot(norm, -lightDir);
-sunL = 0.5 + 0.5 * sun;
-sun = saturate(sun);
-sun = lerp(sun, sunL, _Softness);
-coeff = float3(1.0, 0.8, 0.0)
-through = saturate(coeff.x * flare + coeff.y * fnorm) * transl;
-if (!(_UNITY_LIGHTING) ) {
-	colorLight = _ColorLight;
-	colorShadow = _ColorShadow;
-} else {
-	colorLight = _LightColor0;
-	colorShadow = 1.0;
-	colorShadow.set_xyz(ShadeSH9(float4(norm, 1.0)));
-}
-lcolor = colorShadow + colorLight;
-sunColor = lerp(colorShadow, lcolor, sun);
-if (_UNITY_LIGHTING) {
-	sunColor = saturate(sunColor);
-}
-color = i.color * sunColor;
-if (_UNITY_LIGHTING) {
-	color = color + 0.1 * max(0.0, sunColor - 1.0);
-}
-throughColor = 1.3 * i.color * colorLight + colorLight * 0.3;
-result = lerp(color, throughColor, through);
-result = saturate(result);
-UNITY_APPLY_FOG(i.UNITY_FOG_COORDS, result);
-result27 = result;
-return result27;
+	sum2 = sum2 + 5678.0;
+	if (facing ) {
+		sss1 = _WorldSpaceLightPos0.xyz * 2.0;
+	} else {
+		sss1 = worldPos.xyz - _WorldSpaceCameraPos.xyz;
+	}
+	vec3 dir = sss1;
+	if (facing ) {
+		sss2 = 1.0;
+	} else {
+		sss2 = -1.0;
+	}
+	vec3 norm = normalize(sss2 * normal);
+	vec3 lightDir = -normalize(_WorldSpaceLightPos0.xyz);
+	vec3 viewDir = normalize(worldPos.xyz - _WorldSpaceCameraPos.xyz);
+	float flare = saturate(dot(viewDir, -lightDir));
+	flare = (flare * flare) * flare;
+	float transl = saturate(1.5 * (1.0 - color.a));
+	float fnorm = saturate(dot(norm, lightDir) - 0.5);
+	float sun = dot(norm, -lightDir);
+	float sunL = 0.5 + (0.5 * sun);
+	sun = saturate(sun);
+	sun = lerp(sun, sunL, _Softness);
+	coeff = float3(1.0, 0.8, 0.0)
+	float through = saturate((coeff.x * flare) + (coeff.y * fnorm)) * transl;
+	if (!_UNITY_LIGHTING ) {
+		vec4 colorLight = _ColorLight;
+		vec4 colorShadow = _ColorShadow;
+	} else {
+		colorLight = _LightColor0;
+		colorShadow = 1.0;
+		colorShadow.xyz = ShadeSH9(float4(norm, 1.0));
+	}
+	vec4 lcolor = colorShadow + colorLight;
+	vec4 sunColor = lerp(colorShadow, lcolor, sun);
+	if (_UNITY_LIGHTING) {
+		sunColor = saturate(sunColor);
+	}
+	vec4 l21_color = color * sunColor;
+	if (_UNITY_LIGHTING) {
+		l21_color = l21_color + (0.1 * max(0.0, sunColor - 1.0));
+	}
+	vec4 throughColor = ((1.3 * color) * colorLight) + (colorLight * 0.3);
+	vec4 result = lerp(l21_color, throughColor, through);
+	result = saturate(result);
+	UNITY_APPLY_FOG(UNITY_FOG_COORDS, result);
+	result27 = result;
+	gl_FragColor = result27; return;
 
 }
 /*___unresolved_____

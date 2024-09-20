@@ -13,6 +13,8 @@ namespace Compiler
         internal object def;
         public string name;
         public string expectedType;
+        public bool needsBrackets;
+        public string btext => needsBrackets ? $"({text})" : text;
 
         public override string ToString()
         {

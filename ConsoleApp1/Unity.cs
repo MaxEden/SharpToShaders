@@ -1,5 +1,6 @@
 ﻿
 using System.Numerics;
+using GenMath;
 
 namespace _ConsoleApp1
 {
@@ -63,6 +64,21 @@ namespace _ConsoleApp1
         }
 
         internal static void UNITY_TRANSFER_INSTANCE_ID(ref UNITY_VERTEX_INPUT_INSTANCE_ID uNITY_VERTEX_INPUT_INSTANCE_ID1, ref UNITY_VERTEX_INPUT_INSTANCE_ID uNITY_VERTEX_INPUT_INSTANCE_ID2)
+        {
+            throw new NotImplementedException();
+        }
+
+        public static float4 UnityObjectToClipPos(float4 inVertex)
+        {
+            throw new NotImplementedException();
+        }
+
+        public static fixed4 tex2D(sampler2D mainTex, float2 texcoord)
+        {
+            throw new NotImplementedException();
+        }
+
+        public static float Luminance(float3 rgb)
         {
             throw new NotImplementedException();
         }

@@ -1,0 +1,260 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension=".cs" #>
+
+
+<#
+	string[] names = new[]
+	{
+		"float",
+		"fixed",
+		"half"
+	};
+
+	string[] fields = new[]
+	{
+		"x", "y", "z", "w"
+	};
+
+	string[] colFields = new[]
+	{
+		"r", "g", "b", "a"
+	};
+
+	string[] operators = new[]
+	{
+		"+", "-", "*", "/", "%"
+	};
+
+	WriteLine("using System;");
+	WriteLine("using System.Runtime.InteropServices;");
+	WriteLine("namespace GenMath{");
+
+	foreach (var name in names)
+	{
+		for (int n = 2; n <= 4; n++)
+		{
+			var vecName = name + n;
+
+			WriteLine("[StructLayout(LayoutKind.Explicit)]");
+			WriteLine($"public struct  {vecName}");
+			WriteLine("{");
+
+			for (int i = 0; i < n; i++)
+			{
+				WriteLine($"[FieldOffset({4*i})] public float {fields[i]};");	
+			}
+
+			for (int i = 0; i < n; i++)
+			{
+				WriteLine($"[FieldOffset({4*i})] public float {colFields[i]};");
+			}
+
+			void InitDefault()
+			{
+				for (int maxF = 2; maxF < n; maxF++)
+				{
+					var argName = "";
+					for (int i = 0; i < maxF; i++)
+					{
+						argName += fields[i];
+					}
+
+					WriteLine($"this.{argName} = default;");
+				}
+
+				for (int maxF = 2; maxF < n; maxF++)
+				{
+					var argName = "";
+					for (int i = 0; i < maxF; i++)
+					{
+						argName += colFields[i];
+					}
+
+					WriteLine($"this.{argName} = default;");
+				}
+
+				for (int i = 0; i < n; i++)
+				{
+					WriteLine($"this.{colFields[i]} = default;");
+				}
+
+				WriteLine("");
+			}
+
+			var ctor = "public " + vecName + "(";
+
+			for (int i = 0; i < n; i++)
+			{
+				ctor += "float " + fields[i];
+				if (i < n - 1) ctor += ",";
+			}
+
+			ctor += ")";
+			WriteLine(ctor);
+			WriteLine("{");
+
+			InitDefault();
+			for (int i = 0; i < n; i++)
+			{
+				WriteLine($"this.{fields[i]} = {fields[i]};");
+			}
+			WriteLine("}");
+
+			if (n > 2)
+			{
+				var argName = "";
+				for (int i = 0; i < n - 1; i++)
+				{
+					argName += fields[i];
+				}
+
+				WriteLine($"public {vecName}({name + (n - 1)} {argName}, float {fields[n-1]})");
+				WriteLine("{");
+				InitDefault();
+
+
+				for (int i = 0; i < n-1; i++)
+				{
+					WriteLine($"this.{fields[i]} = {argName}.{fields[i]};");
+				}
+				WriteLine($"this.{fields[n-1]} = {fields[n-1]};");
+				WriteLine("}");
+
+				
+			}
+
+			
+				for (int maxF = 2; maxF <= n; maxF++)
+				{
+					var argName = "";
+					for (int i = 0; i < maxF; i++)
+					{
+						argName += fields[i];
+					}
+					
+					if (name + maxF == vecName)
+					{
+						WriteLine($"public {name + maxF} {argName} {{");
+						WriteLine($"get => new {name + maxF}();");
+						WriteLine($"set{{ }}");
+						WriteLine($" }}");
+					}
+					else
+					{
+						WriteLine("[FieldOffset(0)]"); 
+						WriteLine($"public {name + maxF} {argName};");
+					}
+
+
+				}
+
+				//--------
+				for (int maxF = 2; maxF <= n; maxF++)
+				{
+					var argName = "";
+					for (int i = 0; i < maxF; i++)
+					{
+						argName += colFields[i];
+					}
+
+					if (name + maxF == vecName)
+					{
+
+						WriteLine($"public {name + maxF} {argName} {{");
+						WriteLine($"get => new {name + maxF}();");
+						WriteLine($"set{{ }}");
+						WriteLine($" }}");
+					}
+					else
+					{
+						WriteLine("[FieldOffset(0)]"); 
+						WriteLine($"public {name + maxF} {argName};");
+					}
+				}
+
+
+				//========
+			foreach (var oper in operators)
+			{
+
+				//Scalar
+				WriteLine($"public static {vecName} operator {oper}({vecName} vector, float scalar)");
+				WriteLine("{");
+				WriteLine($"return new {vecName}(");
+
+				for (int i = 0; i < n; i++)
+				{
+					var comma = (i < n - 1) ? "," : "";
+					WriteLine($"vector.{fields[i]} {oper} scalar" + comma);
+				}
+
+				WriteLine(");");
+				WriteLine("}");
+
+				//back Scalar
+
+				WriteLine($"public static {vecName} operator {oper}(float scalar, {vecName} vector) => vector {oper} scalar;");
+
+				//vector
+				WriteLine($"public static {vecName} operator {oper}({vecName} vector, {vecName} scalar)");
+				WriteLine("{");
+				WriteLine($"return new {vecName}(");
+
+				for (int i = 0; i < n; i++)
+				{
+					var comma = (i < n - 1) ? "," : "";
+					WriteLine($"vector.{fields[i]} {oper} scalar.{fields[i]}" + comma);
+				}
+
+				WriteLine(");");
+				WriteLine("}");
+
+				foreach (var name1 in names)
+				{
+					if(name == name1) continue;
+					WriteLine($"public static {vecName} operator {oper}({vecName} vector, {name1+n} scalar) {{ return default;}}");
+				}
+			}
+
+			//unary negation
+			{
+				WriteLine($"public static {vecName} operator -({vecName} vector)");
+				WriteLine("{");
+				WriteLine($"return new {vecName}(");
+				for (int i = 0; i < n; i++)
+				{
+					
+					Write($"-vector.{fields[i]}");
+					if(i<n-1) Write(",");
+					WriteLine("");
+				}
+				WriteLine(");");
+				WriteLine("}");
+			}
+
+			for (int m = 2; m < n; m++)
+			{
+				WriteLine($"public static implicit operator {name + m}({vecName} v) {{ throw new NotImplementedException(); }}");
+			}
+
+			foreach (var name1 in names)
+			{
+				if(name1 == name) continue;
+				//if(Array.IndexOf(names,name1)>Array.IndexOf(names, name)) continue;
+
+				WriteLine($"public static implicit operator {name1 + n}({vecName} v) {{ throw new NotImplementedException(); }}");
+			}
+
+			WriteLine($"public static implicit operator {vecName}(float v) {{ throw new NotImplementedException(); }}");
+
+			WriteLine("}");
+		}
+	}
+
+	WriteLine("}");
+
+#>	

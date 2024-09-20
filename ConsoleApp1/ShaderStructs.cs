@@ -4,287 +4,467 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using GenMath;
 
 namespace _ConsoleApp1
 {
-    public struct float3
-    {
-        public float x, y, z;
+    //public struct half2
+    //{
+    //    public float x, y;
 
-        public float3(float x, float y, float z)
-        {
-            this.x = x;
-            this.y = y;
-            this.z = z;
-        }
+    //    public half2(float x, float y)
+    //    {
+    //        this.x = x;
+    //        this.y = y;
+    //    }
 
-        public float3 xyz => this;
+    //    public half2 xy => this;
 
-        public static float3 operator *(float3 vector, float scalar)
-        {
-            return new float3(
-                vector.x * scalar,
-                vector.y * scalar,
-                vector.z * scalar
-                );
-        }
+    //    public static half2 operator *(half2 vector, float scalar)
+    //    {
+    //        return new half2(
+    //            vector.x * scalar,
+    //            vector.y * scalar
+    //        );
+    //    }
+    //    public static half2 operator *(float scalar, half2 vector)
+    //    {
+    //        return vector * scalar;
+    //    }
+    //    public static half2 operator /(half2 vector, float scalar)
+    //    {
+    //        return new half2(
+    //            vector.x / scalar,
+    //            vector.y / scalar
+    //        );
+    //    }
+    //    public static half2 operator +(half2 vector, half2 scalar)
+    //    {
+    //        return new half2(
+    //            vector.x + scalar.x,
+    //            vector.y + scalar.y
+    //        );
+    //    }
+    //    public static half2 operator -(half2 vector, half2 scalar)
+    //    {
+    //        return new half2(
+    //            vector.x - scalar.x,
+    //            vector.y - scalar.y
+    //        );
+    //    }
+    //    public static half2 operator -(half2 vector)
+    //    {
+    //        return new half2(
+    //            -vector.x,
+    //            -vector.y
+    //        );
+    //    }
 
-        public static float3 operator *(float scalar, float3 vector)
-        {
-            return vector * scalar;
-        }
+    //    public static implicit operator half2(float2 v)
+    //    {
+    //        throw new NotImplementedException();
+    //    }
 
-        public static float3 operator /(float3 vector, float scalar)
-        {
-            return new float3(
-                vector.x / scalar,
-                vector.y / scalar,
-                vector.z / scalar
-                );
-        }
+    //    public static implicit operator float2(half2 v)
+    //    {
+    //        throw new NotImplementedException();
+    //    }
+    //}
+    //public struct float2
+    //{
+    //    public float x, y;
 
-        public static float3 operator +(float3 vector, float3 scalar)
-        {
-            return new float3(
-                vector.x + scalar.x,
-                vector.y + scalar.y,
-                vector.z + scalar.z
-                );
-        }
+    //    public float2(float x, float y)
+    //    {
+    //        this.x = x;
+    //        this.y = y;
+    //    }
 
-        public static float3 operator -(float3 vector, float3 scalar)
-        {
-            return new float3(
-                vector.x - scalar.x,
-                vector.y - scalar.y,
-                vector.z - scalar.z
-                );
-        }
+    //    public float2 xy => this;
 
-        public static float3 operator -(float3 vector)
-        {
-            return new float3(
-                -vector.x,
-                -vector.y,
-                -vector.z
-                );
-        }
-    }
+    //    public static float2 operator *(float2 vector, float2 scalar)
+    //    {
+    //        return new float2(
+    //            vector.x * scalar.x,
+    //            vector.y * scalar.y
+    //        );
+    //    }
 
-    public struct float4
-    {
-        public float x, y, z, w;
+    //    public static float2 operator *(float2 vector, float scalar)
+    //    {
+    //        return new float2(
+    //            vector.x * scalar,
+    //            vector.y * scalar
+    //        );
+    //    }
+    //    public static float2 operator *(float scalar, float2 vector)
+    //    {
+    //        return vector * scalar;
+    //    }
+    //    public static float2 operator /(float2 vector, float scalar)
+    //    {
+    //        return new float2(
+    //            vector.x / scalar,
+    //            vector.y / scalar
+    //        );
+    //    }
+    //    public static float2 operator +(float2 vector, float2 scalar)
+    //    {
+    //        return new float2(
+    //            vector.x + scalar.x,
+    //            vector.y + scalar.y
+    //        );
+    //    }
+    //    public static float2 operator -(float2 vector, float2 scalar)
+    //    {
+    //        return new float2(
+    //            vector.x - scalar.x,
+    //            vector.y - scalar.y
+    //        );
+    //    }
+    //    public static float2 operator -(float2 vector)
+    //    {
+    //        return new float2(
+    //            -vector.x,
+    //            -vector.y
+    //        );
+    //    }
+    //}
 
-        public float4(float3 xyz, float w) : this()
-        {
-            x = xyz.x;
-            y = xyz.y;
-            z = xyz.z;
-            this.w = w;
-        }
+    //public struct float3
+    //{
+    //    public float x, y, z;
+    //    public float2 xy => new float2(x, y);
 
-        public float4(float x, float y, float z, float w) : this()
-        {
-            this.x = x;
-            this.y = y;
-            this.z = z;
-            this.w = w;
-        }
+    //    public float3(float x, float y, float z)
+    //    {
+    //        this.x = x;
+    //        this.y = y;
+    //        this.z = z;
+    //    }
 
-        public float3 xyz
-        {
-            get => new float3(x, y, z);
+    //    public float3 xyz => this;
+
+    //    public static float3 operator *(float3 vector, float scalar)
+    //    {
+    //        return new float3(
+    //            vector.x * scalar,
+    //            vector.y * scalar,
+    //            vector.z * scalar
+    //            );
+    //    }
+    //    public static float3 operator *(float scalar, float3 vector)
+    //    {
+    //        return vector * scalar;
+    //    }
+    //    public static float3 operator /(float3 vector, float scalar)
+    //    {
+    //        return new float3(
+    //            vector.x / scalar,
+    //            vector.y / scalar,
+    //            vector.z / scalar
+    //            );
+    //    }
+    //    public static float3 operator +(float3 vector, float3 scalar)
+    //    {
+    //        return new float3(
+    //            vector.x + scalar.x,
+    //            vector.y + scalar.y,
+    //            vector.z + scalar.z
+    //            );
+    //    }
+    //    public static float3 operator -(float3 vector, float3 scalar)
+    //    {
+    //        return new float3(
+    //            vector.x - scalar.x,
+    //            vector.y - scalar.y,
+    //            vector.z - scalar.z
+    //            );
+    //    }
+    //    public static float3 operator -(float3 vector)
+    //    {
+    //        return new float3(
+    //            -vector.x,
+    //            -vector.y,
+    //            -vector.z
+    //            );
+    //    }
+    //}
+
+    //public struct float4
+    //{
+    //    public float x, y, z, w;
+
+    //    public float4(float3 xyz, float w) : this()
+    //    {
+    //        x = xyz.x;
+    //        y = xyz.y;
+    //        z = xyz.z;
+    //        this.w = w;
+    //    }
+
+    //    public float4(float x, float y, float z, float w) : this()
+    //    {
+    //        this.x = x;
+    //        this.y = y;
+    //        this.z = z;
+    //        this.w = w;
+    //    }
+
+    //    public float3 xyz
+    //    {
+    //        get => new float3(x, y, z);
             
-            set
-            {
-                x = value.x;
-                y = value.y;
-                z = value.z;
-            }
-        }
+    //        set
+    //        {
+    //            x = value.x;
+    //            y = value.y;
+    //            z = value.z;
+    //        }
+    //    }
     
-        public static float4 operator *(float scalar, float4 vector)
-        {
-            return vector * scalar;
-        }
+    //    public static float4 operator *(float scalar, float4 vector)
+    //    {
+    //        return vector * scalar;
+    //    }
 
-        public static float4 operator *(float4 vector, float scalar)
-        {
-            return new float4(
-                vector.x * scalar,
-                vector.y * scalar,
-                vector.z * scalar,
-                vector.w * scalar
-                );
-        }
+    //    public static float4 operator *(float4 vector, float scalar)
+    //    {
+    //        return new float4(
+    //            vector.x * scalar,
+    //            vector.y * scalar,
+    //            vector.z * scalar,
+    //            vector.w * scalar
+    //            );
+    //    }
 
-        public static float4 operator *(float4 vector, float4 scalar)
-        {
-            return new float4(
-                vector.x * scalar.x,
-                vector.y * scalar.y,
-                vector.z * scalar.z,
-                vector.w * scalar.w
-                );
-        }
+    //    public static float4 operator *(float4 vector, float4 scalar)
+    //    {
+    //        return new float4(
+    //            vector.x * scalar.x,
+    //            vector.y * scalar.y,
+    //            vector.z * scalar.z,
+    //            vector.w * scalar.w
+    //            );
+    //    }
 
-        public static float4 operator *(float4 vector, fixed4 scalar)
-        {
-            return new float4(
-                vector.x * scalar.x,
-                vector.y * scalar.y,
-                vector.z * scalar.z,
-                vector.w * scalar.w
-                );
-        }
-        public static float4 operator /(float4 vector, float scalar)
-        {
-            return new float4(
-                vector.x / scalar,
-                vector.y / scalar,
-                vector.z / scalar,
-                vector.w / scalar
-                );
-        }
-        public static float4 operator +(float4 vector, float4 scalar)
-        {
-            return new float4(
-                vector.x + scalar.x,
-                vector.y + scalar.y,
-                vector.z + scalar.z,
-                vector.w + scalar.w
-                );
-        }
-        public static float4 operator -(float4 vector, float4 scalar)
-        {
-            return new float4(
-                vector.x - scalar.x,
-                vector.y - scalar.y,
-                vector.z - scalar.z,
-                vector.w - scalar.w
-                );
-        }
+    //    public static float4 operator *(float4 vector, fixed4 scalar)
+    //    {
+    //        return new float4(
+    //            vector.x * scalar.x,
+    //            vector.y * scalar.y,
+    //            vector.z * scalar.z,
+    //            vector.w * scalar.w
+    //            );
+    //    }
+    //    public static float4 operator /(float4 vector, float scalar)
+    //    {
+    //        return new float4(
+    //            vector.x / scalar,
+    //            vector.y / scalar,
+    //            vector.z / scalar,
+    //            vector.w / scalar
+    //            );
+    //    }
+    //    public static float4 operator +(float4 vector, float4 scalar)
+    //    {
+    //        return new float4(
+    //            vector.x + scalar.x,
+    //            vector.y + scalar.y,
+    //            vector.z + scalar.z,
+    //            vector.w + scalar.w
+    //            );
+    //    }
+    //    public static float4 operator -(float4 vector, float4 scalar)
+    //    {
+    //        return new float4(
+    //            vector.x - scalar.x,
+    //            vector.y - scalar.y,
+    //            vector.z - scalar.z,
+    //            vector.w - scalar.w
+    //            );
+    //    }
 
-        public static float4 operator -(float4 vector)
-        {
-            return new float4(
-                -vector.x,
-                -vector.y,
-                -vector.z,
-                -vector.w
-                );
-        }
+    //    public static float4 operator -(float4 vector)
+    //    {
+    //        return new float4(
+    //            -vector.x,
+    //            -vector.y,
+    //            -vector.z,
+    //            -vector.w
+    //            );
+    //    }
 
-        public static implicit operator float4(float3 v)
-        {
-            throw new NotImplementedException();
-        }
+    //    public static implicit operator float4(float3 v)
+    //    {
+    //        throw new NotImplementedException();
+    //    }
 
-        public static implicit operator float3(float4 v)
-        {
-            throw new NotImplementedException();
-        }
+    //    public static implicit operator float2(float4 v)
+    //    {
+    //        throw new NotImplementedException();
+    //    }
 
-        public static implicit operator float4(fixed4 v)
-        {
-            throw new NotImplementedException();
-        }
+    //    public static implicit operator float3(float4 v)
+    //    {
+    //        throw new NotImplementedException();
+    //    }
 
-        public static implicit operator fixed4(float4 v)
-        {
-            throw new NotImplementedException();
-        }
+    //    public static implicit operator float4(fixed4 v)
+    //    {
+    //        throw new NotImplementedException();
+    //    }
 
-        public static implicit operator float4(float v)
-        {
-            throw new NotImplementedException();
-        }
-    }
+    //    public static implicit operator fixed4(float4 v)
+    //    {
+    //        throw new NotImplementedException();
+    //    }
 
-    public struct fixed3
-    {
-        private float x;
-        private float y;
-        private float z;
+    //    public static implicit operator float4(float v)
+    //    {
+    //        throw new NotImplementedException();
+    //    }
+    //}
 
-        public fixed3(float x, float y, float z)
-        {
-            this.x = x;
-            this.y = y;
-            this.z = z;
-        }
+    //public struct fixed1
+    //{
+    //    public static implicit operator float(fixed1 v)
+    //    {
+    //        throw new NotImplementedException();
+    //    }
 
-        public static implicit operator fixed3(float3 v)
-        {
-            throw new NotImplementedException();
-        }
+    //    public static implicit operator fixed1(float v)
+    //    {
+    //        throw new NotImplementedException();
+    //    }
+    //}
 
-        public static implicit operator fixed3(fixed4 v)
-        {
-            throw new NotImplementedException();
-        }
+    //public struct fixed2
+    //{
+    //    private float x;
+    //    private float y;
 
-        public static fixed3 operator *(fixed3 vector, float scalar)
-        {
-            return new fixed3(
-                vector.x * scalar,
-                vector.y * scalar,
-                vector.z * scalar
-                );
-        }
+    //    public fixed2(float x, float y)
+    //    {
+    //        this.x = x;
+    //        this.y = y;
+    //    }
 
-        public static fixed3 operator *(float scalar, fixed3 vector)
-        {
-            return new fixed3(
-                vector.x * scalar,
-                vector.y * scalar,
-                vector.z * scalar
-                );
-        }
-    }
 
-    public struct fixed4
-    {
-        public float x, y, z, w;
 
-        public float r => x;
-        public float g => y;
-        public float b => z;
-        public float a => w;
+    //    public static implicit operator fixed2(float3 v)
+    //    {
+    //        throw new NotImplementedException();
+    //    }
 
-        public fixed4(float3 xyz, float w) : this()
-        {
-            x = xyz.x;
-            y = xyz.y;
-            z = xyz.z;
-            this.w = w;
-        }
+    //    public static implicit operator fixed2(fixed4 v)
+    //    {
+    //        throw new NotImplementedException();
+    //    }
 
-        public fixed4(float x, float y, float z, float w) : this()
-        {
-            this.x = x;
-            this.y = y;
-            this.z = z;
-            this.w = w;
-        }
+    //    public static fixed2 operator *(fixed2 vector, float scalar)
+    //    {
+    //        return new fixed2(
+    //            vector.x * scalar,
+    //            vector.y * scalar
+    //        );
+    //    }
 
-        public fixed3 xyz => new fixed3(x, y, z);
+    //    public static fixed2 operator *(float scalar, fixed2 vector)
+    //    {
+    //        return new fixed2(
+    //            vector.x * scalar,
+    //            vector.y * scalar
+    //        );
+    //    }
+    //}
 
-        public static fixed4 operator *(float scalar, fixed4 vector)
-        {
-            return vector * scalar;
-        }
+    //public struct fixed3
+    //{
+    //    private float x;
+    //    private float y;
+    //    private float z;
 
-        public static fixed4 operator *(fixed4 vector, float scalar)
-        {
-            return new fixed4(
-                vector.x * scalar,
-                vector.y * scalar,
-                vector.z * scalar,
-                vector.w * scalar
-                );
-        }
-    }
+    //    public fixed3(float x, float y, float z)
+    //    {
+    //        this.x = x;
+    //        this.y = y;
+    //        this.z = z;
+    //    }
+
+    //    public static implicit operator fixed3(float3 v)
+    //    {
+    //        throw new NotImplementedException();
+    //    }
+
+    //    public static implicit operator fixed3(fixed4 v)
+    //    {
+    //        throw new NotImplementedException();
+    //    }
+
+    //    public static fixed3 operator *(fixed3 vector, float scalar)
+    //    {
+    //        return new fixed3(
+    //            vector.x * scalar,
+    //            vector.y * scalar,
+    //            vector.z * scalar
+    //            );
+    //    }
+
+    //    public static fixed3 operator *(float scalar, fixed3 vector)
+    //    {
+    //        return new fixed3(
+    //            vector.x * scalar,
+    //            vector.y * scalar,
+    //            vector.z * scalar
+    //            );
+    //    }
+    //}
+
+    //public struct fixed4
+    //{
+    //    public float x, y, z, w;
+    //    public float3 rgb => new float3(x, y, z);
+    //    public float2 xy => new float2(x, y);
+
+    //    public float r => x;
+    //    public float g => y;
+    //    public float b => z;
+    //    public float a => w;
+
+    //    public fixed4(float3 xyz, float w) : this()
+    //    {
+    //        x = xyz.x;
+    //        y = xyz.y;
+    //        z = xyz.z;
+    //        this.w = w;
+    //    }
+
+    //    public fixed4(float x, float y, float z, float w) : this()
+    //    {
+    //        this.x = x;
+    //        this.y = y;
+    //        this.z = z;
+    //        this.w = w;
+    //    }
+
+    //    public fixed3 xyz => new fixed3(x, y, z);
+
+    //    public static fixed4 operator *(float scalar, fixed4 vector)
+    //    {
+    //        return vector * scalar;
+    //    }
+
+    //    public static fixed4 operator *(fixed4 vector, float scalar)
+    //    {
+    //        return new fixed4(
+    //            vector.x * scalar,
+    //            vector.y * scalar,
+    //            vector.z * scalar,
+    //            vector.w * scalar
+    //            );
+    //    }
+    //}
 
     public static class math
     {
@@ -357,6 +537,11 @@ namespace _ConsoleApp1
         {
             throw new NotImplementedException();
         }
+    }
+
+    public struct sampler2D
+    {
+
     }
 
 

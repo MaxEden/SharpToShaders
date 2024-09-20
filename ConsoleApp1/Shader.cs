@@ -53,6 +53,8 @@ namespace ConsoleApp1
 
     public interface IShader
     {
-
+        public bool Cull => true;
+        public bool Lighting => true;
+        public bool ZWrite => true;
     }
 }
