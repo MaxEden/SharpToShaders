@@ -6,10 +6,11 @@ using System.Text;
 using Lemon.Tools;
 using FlowControl = Mono.Cecil.Cil.FlowControl;
 using OpCodes = Mono.Cecil.Cil.OpCodes;
+using Shader.BuildTarget;
 
 namespace Compiler
 {
-    internal class ShaderBuilder
+    public class ShaderBuilder
     {
         static Dictionary<string, string> _operators = new()
         {
@@ -19,21 +20,21 @@ namespace Compiler
             { "op_Subtraction", "-" },
         };
 
-        static Dictionary<string, string> _typeMap = new()
-        {
-            {"Single", "float" },
-            {"Double", "double" },
-            {"Boolean", "bool" },
-            {"Int32", "int" },
+        //static Dictionary<string, string> _typeMap = new()
+        //{
+        //    {"Single", "float" },
+        //    {"Double", "double" },
+        //    {"Boolean", "bool" },
+        //    {"Int32", "int" },
 
-            {"float2", "vec2"},
-            {"float3", "vec3"},
-            {"float4", "vec4"},
+        //    {"float2", "vec2"},
+        //    {"float3", "vec3"},
+        //    {"float4", "vec4"},
 
-            {"fixed2", "vec2"},
-            {"fixed3", "vec3"},
-            {"fixed4", "vec4"},
-        };
+        //    {"fixed2", "vec2"},
+        //    {"fixed3", "vec3"},
+        //    {"fixed4", "vec4"},
+        //};
 
         private static Dictionary<string, string> _methodMap = new()
         {
@@ -62,26 +63,33 @@ namespace Compiler
         public readonly Stack<StackItem> Stack = new();
         public readonly Stack<IfScope> _ifScopeStack = new();
         private LocalVar[] _locals;
-        private StringBuilder unresolved;
+        private StringBuilder _unresolved;
 
         private int _indent;
         private MethodDefinition _method;
         private HashSet<Instruction> _returnBranches;
 
         private Dictionary<FieldReference, Var> _varyings = new();
-
+        private IBuildTarget _buildTarget;
         private ProgramType _programType;
 
-        internal void Build(string path, TypeDefinition type)
+        public Dictionary<FieldReference, Var> Varyings  => _varyings;
+        public List<NamedStack> NamedLocals => _namedStkLocals;
+
+        public StringBuilder Body => _body;
+
+        public LocalVar[] Locals => _locals;
+
+        public void Build(IBuildTarget buildTarget, string path, TypeDefinition type)
         {
             var method2 = type.GetMethods().First(p => p.Name.StartsWith("Frag", StringComparison.InvariantCultureIgnoreCase));
-            Build(path, type, method2, ProgramType.Fragment);
+            Build(buildTarget, path, type, method2, ProgramType.Fragment);
 
             var method1 = type.GetMethods().First(p => p.Name.StartsWith("Vert", StringComparison.InvariantCultureIgnoreCase));
-            Build(path, type, method1, ProgramType.Vertex);
+            Build(buildTarget, path, type, method1, ProgramType.Vertex);
         }
 
-        class LocalVar
+        public class LocalVar
         {
             public VariableDefinition definition;
             public string name;
@@ -99,14 +107,14 @@ namespace Compiler
             }
         }
 
-        enum VarType
+        public enum VarType
         {
             None,
             Varying,
             Attribute,
             Uniform
         }
-        class Var
+        public class Var
         {
             public VarType Type;
             public TypeReference FieldType;
@@ -115,10 +123,15 @@ namespace Compiler
             public bool BuiltIn;
         }
 
-        internal string Build(string path, TypeDefinition type, MethodDefinition method, ProgramType programType)
+        internal string Build(IBuildTarget buildTarget, string path, TypeDefinition type, MethodDefinition method, ProgramType programType)
         {
             Stack.Clear();
 
+            _buildTarget = buildTarget;
+            _buildTarget.Context = new Context
+            {
+                ProgramType = programType
+            };
             _programType = programType;
             _indent = 0;
             _body = new StringBuilder();
@@ -132,7 +145,7 @@ namespace Compiler
 
             DumpInstructions(path, type, method);
 
-            unresolved = new StringBuilder();
+            _unresolved = new StringBuilder();
 
             _namedStkLocals.Clear();
 
@@ -147,47 +160,54 @@ namespace Compiler
 
             var sb = new StringBuilder();
 
-            foreach (var field in _varyings.Values.Where(p=> p.IsUsed && !p.BuiltIn && p.Type == VarType.Attribute))
-            {
-                sb.AppendLine($"attribute {MapTypeName(field.FieldType)} {field.Name};");
-            }
+            var usedVaryings = _varyings.Values.Where(p => p.IsUsed).ToArray();
+            var usedLocals = _locals.Where(p => !p.canBeOmitted && !p.canBeRef && !p.canInline).ToArray();
+            var usedNamedLocals = _namedStkLocals.ToArray();
+            _buildTarget.Context.Builder = this;
 
-            sb.AppendLine();
-            foreach (var field in _varyings.Values.Where(p => p.IsUsed && !p.BuiltIn && p.Type == VarType.Uniform))
-            {
-                sb.AppendLine($"uniform {MapTypeName(field.FieldType)} {field.Name};");
-            }
-            sb.AppendLine();
-            foreach (var field in _varyings.Values.Where(p => p.IsUsed && p.Type == VarType.Varying))
-            {
-                sb.AppendLine($"varying {MapTypeName(field.FieldType)} {field.Name};");
-            }
-            sb.AppendLine();
-            sb.AppendLine($"main(){{");
+            _buildTarget.WriteHeader(sb, usedVaryings, usedLocals, usedNamedLocals);
 
+            //foreach (var field in usedVaryings.Where(p=> !p.BuiltIn && p.Type == VarType.Attribute))
+            //{
+            //    sb.AppendLine($"attribute {MapTypeName(field.FieldType)} {field.Name};");
+            //}
 
-            for (int i = 0; i < _locals.Length; i++)
-            {
-                if (_locals[i].canBeOmitted) continue;
-                if (_locals[i].canBeRef) continue;
-                if (_locals[i].canInline) continue;
-                sb.AppendLine(
-                    $"{MapTypeName(_locals[i].definition.VariableType)} {_locals[i]};"
-                );
-            }
+            //sb.AppendLine();
+            //foreach (var field in usedVaryings.Where(p=> !p.BuiltIn && p.Type == VarType.Uniform))
+            //{
+            //    sb.AppendLine($"uniform {MapTypeName(field.FieldType)} {field.Name};");
+            //}
+            //sb.AppendLine();
+            //foreach (var field in usedVaryings.Where(p=> p.Type == VarType.Varying))
+            //{
+            //    sb.AppendLine($"varying {MapTypeName(field.FieldType)} {field.Name};");
+            //}
+            //sb.AppendLine();
+            //sb.AppendLine($"main(){{");
 
-            foreach (var stack in _namedStkLocals)
-            {
-                sb.AppendLine(
-                    $"{stack.expectedType} {stack.name};"
-                );
-            }
+            //for (int i = 0; i < _locals.Length; i++)
+            //{
+            //    if (_locals[i].canBeOmitted) continue;
+            //    if (_locals[i].canBeRef) continue;
+            //    if (_locals[i].canInline) continue;
+            //    sb.AppendLine(
+            //        $"{MapTypeName(_locals[i].definition.VariableType)} {_locals[i]};"
+            //    );
+            //}
+
+            //foreach (var stack in _namedStkLocals)
+            //{
+            //    sb.AppendLine(
+            //        $"{stack.expectedType} {stack.name};"
+            //    );
+            //}
 
             sb.AppendLine(_body.ToString());
 
-            sb.AppendLine("}");
+            _buildTarget.WriteFooter(sb);
+            
             sb.AppendLine("/*___unresolved_____");
-            sb.AppendLine(unresolved.ToString());
+            sb.AppendLine(_unresolved.ToString());
             sb.AppendLine("_____________*/");
 
 
@@ -228,8 +248,7 @@ namespace Compiler
                 foreach (var parameter in method.Parameters.ToArray())
                 {
                     foreach (var field in parameter.ParameterType.Resolve().Fields)
-                    {
-                        
+                    {                        
                             _varyings.Add(field,
                                 new Var()
                                 {
@@ -815,50 +834,20 @@ namespace Compiler
                     Operator("%");
                     break;
                 default:
-                    unresolved.Append(op.OpCode.Code);
-                    unresolved.Append(" ");
+                    _unresolved.Append(op.OpCode.Code);
+                    _unresolved.Append(" ");
                     if (op.Operand != null)
                     {
-                        unresolved.Append(op.Operand);
-                        unresolved.Append(" ");
-                        unresolved.Append(op.Operand.GetType().Name);
+                        _unresolved.Append(op.Operand);
+                        _unresolved.Append(" ");
+                        _unresolved.Append(op.Operand.GetType().Name);
                     }
 
-                    unresolved.AppendLine();
+                    _unresolved.AppendLine();
                     break;
             }
 
             return op.Next;
-        }
-
-        private bool MapReturn(StackItem popped, out string text)
-        {
-            if (_programType == ProgramType.Vertex)
-            {
-                text = $"return;//gl_Position is set";
-                return true;
-            }
-
-            if (_programType == ProgramType.Fragment)
-            {
-                text = $"gl_FragColor = {popped}; return;";
-                return true;
-            }
-
-            text = default;
-            return false;
-        }
-
-        private bool MapField(FieldReference fieldRef, out string text)
-        {
-            if (_varyings.TryGetValue(fieldRef, out var value))
-            {
-                text = value.Name;
-                return true;
-            }
-
-            text = default;
-            return false;
         }
 
         private string PopParameters(MethodReference methodRef)
@@ -1252,10 +1241,46 @@ namespace Compiler
             public string name;
             public string expectedType;
         }
-        private string MapTypeName(TypeReference typeRef)
+        private bool MapReturn(StackItem popped, out string text)
         {
-            if (_typeMap.TryGetValue(typeRef.Name, out var name)) return name;
-            if (typeRef.IsArray && _typeMap.TryGetValue(typeRef.GetElementType().Name, out var elType))
+            if(_buildTarget.MapReturn(popped, out text))
+            {
+                return true;
+            }
+
+            //if (_programType == ProgramType.Vertex)
+            //{
+            //    text = $"return;//gl_Position is set";
+            //    return true;
+            //}
+
+            //if (_programType == ProgramType.Fragment)
+            //{
+            //    text = $"gl_FragColor = {popped}; return;";
+            //    return true;
+            //}
+
+            text = default;
+            return false;
+        }
+        private bool MapField(FieldReference fieldRef, out string text)
+        {
+            if (_varyings.TryGetValue(fieldRef, out var value))
+            {
+                text = value.Name;
+                return true;
+            }
+
+            if (_buildTarget.MapField(fieldRef, out text)) return true;
+
+            text = default;
+            return false;
+        }
+        public string MapTypeName(TypeReference typeRef)
+        {
+            if (_buildTarget.MapTypeName(typeRef, out var name)) return name;
+
+            if (typeRef.IsArray && _buildTarget.MapTypeName(typeRef.GetElementType(), out var elType))
             {
                 return elType + "[]";
             }
@@ -1263,29 +1288,8 @@ namespace Compiler
         }
         private bool MapMethod(MethodReference methodRef, string call, out string result)
         {
-            if (methodRef.DeclaringType.Name == "MathF")
-            {
-                result = methodRef.Name.ToLowerInvariant() + call;
-                return true;
-            }
-
-            if (methodRef.DeclaringType.Name == "math")
-            {
-                result = methodRef.Name.ToLowerInvariant() + call;
-                return true;
-            }
-
-            if (methodRef.DeclaringType.Name == "Unity")
-            {
-                if (_methodMap.TryGetValue(methodRef.Name, out var met))
-                {
-                    result = met + call;
-                    return true;
-                }
-                result = methodRef.Name + call;
-                return true;
-            }
-
+            if (_buildTarget.MapMethod(methodRef, call, out result)) return true;
+           
             if (methodRef.Name == "op_Implicit")
             {
                 result = call;
@@ -1305,7 +1309,6 @@ namespace Compiler
             right = Pop();
             left = Pop(expectedLeftType);
         }
-
         public string Brackets(string text) => "(" + text + ")";
         public void Operator(string oper)
         {

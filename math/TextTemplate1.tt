@@ -4,7 +4,11 @@
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
 <#@ output extension=".cs" #>
+<#@ import namespace="System.Runtime.InteropServices" #>
 
+<#
+
+#>
 
 <#
 	string[] names = new[]
@@ -31,12 +35,72 @@
 
 	WriteLine("using System;");
 	WriteLine("using System.Runtime.InteropServices;");
-	WriteLine("namespace GenMath{");
+	WriteLine("namespace Shader.Vectors{");
+	
+	Dictionary<int, List<(string name, string args, string sets, int[])>> swizDict = new ();
+
+	List<(string name, string args, string sets, int[])> GetSwizz(int n)
+	{
+		if (swizDict.TryGetValue(n, out var res)) return res;
+
+			var swizzles = new List<(string name, string args, string sets, int[])>();
+			swizDict[n] = swizzles;
+
+			var hashSet = new HashSet<(int,int)>();
+			for (int x = 0; x < n; x++)
+			for (int y = 0; y < n; y++)
+			{
+				if(hashSet.Contains((x,y))) continue;
+				hashSet.Add((x,y));
+				
+				if(x==0 && y==1) continue;
+
+				var name = fields[x] + fields[y];
+				var args = fields[x] + "," + fields[y];
+				var sets = "this." + fields[x] + "= value.x;";
+				sets += "this." + fields[y] + "= value.y;";
+
+				swizzles.Add(
+					(name,
+						args,
+						sets,
+						new []{x,y})
+					);
+			}
+
+			var hashSet2 = new HashSet<(int,int,int)>();
+			for (int x = 0; x < n; x++)
+				for (int y = 0; y < n; y++)
+					for (int z = 0; z < n; z++)
+				{
+					if(hashSet2.Contains((x,y,z))) continue;
+					hashSet2.Add((x,y,z));
+
+					if(x==0 && y==1 && z==2) continue; 
+
+					var name = fields[x] + fields[y] + fields[z];
+					var args = fields[x] + "," + fields[y] + "," + fields[z];
+
+					var sets = "this." + fields[x] + "= value.x;";
+					sets += "this." + fields[y] + "= value.y;";
+					sets += "this." + fields[z] + "= value.z;";
+
+					swizzles.Add(
+							(name,
+							args,
+							sets,
+							new []{x,y,z})
+						);
+				}
+
+			return swizzles;
+	};
 
 	foreach (var name in names)
 	{
 		for (int n = 2; n <= 4; n++)
 		{
+			
 			var vecName = name + n;
 
 			WriteLine("[StructLayout(LayoutKind.Explicit)]");
@@ -124,7 +188,6 @@
 				WriteLine($"this.{fields[n-1]} = {fields[n-1]};");
 				WriteLine("}");
 
-				
 			}
 
 			
@@ -135,47 +198,35 @@
 					{
 						argName += fields[i];
 					}
+
+					var colArgName = "";
+					for (int i = 0; i < maxF; i++)
+					{
+						colArgName += colFields[i];
+					}
 					
 					if (name + maxF == vecName)
 					{
-						WriteLine($"public {name + maxF} {argName} {{");
-						WriteLine($"get => new {name + maxF}();");
-						WriteLine($"set{{ }}");
-						WriteLine($" }}");
+						WriteLine($"public {name + maxF} {argName} {{ get => this; set{{ }}}}");
 					}
 					else
 					{
 						WriteLine("[FieldOffset(0)]"); 
 						WriteLine($"public {name + maxF} {argName};");
+
+						WriteLine("[FieldOffset(0)]"); 
+						WriteLine($"public {name + maxF} {colArgName};");
 					}
-
-
 				}
+				
 
-				//--------
-				for (int maxF = 2; maxF <= n; maxF++)
+				var swizzles = GetSwizz(n);
+
+				foreach (var swiz in swizzles)
 				{
-					var argName = "";
-					for (int i = 0; i < maxF; i++)
-					{
-						argName += colFields[i];
-					}
-
-					if (name + maxF == vecName)
-					{
-
-						WriteLine($"public {name + maxF} {argName} {{");
-						WriteLine($"get => new {name + maxF}();");
-						WriteLine($"set{{ }}");
-						WriteLine($" }}");
-					}
-					else
-					{
-						WriteLine("[FieldOffset(0)]"); 
-						WriteLine($"public {name + maxF} {argName};");
-					}
+					var typeName = name + swiz.Item4.Length;
+					WriteLine($"public {typeName} {swiz.name} {{get => new {typeName}({swiz.args});set{{{swiz.sets}}}}}");
 				}
-
 
 				//========
 			foreach (var oper in operators)

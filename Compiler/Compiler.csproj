@@ -9,6 +9,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\EXT-DRIVE\H\GITS\GitTools\Lemon\Lemon.Tools\Lemon.Tools.csproj" />
     <ProjectReference Include="..\..\..\EXT-DRIVE\H\GITS\GitTools\Lemon\Lemon\Lemon.csproj" />
+    <ProjectReference Include="..\Shader.Target\Shader.BuildTarget.csproj" />
   </ItemGroup>
 
   <ItemGroup>

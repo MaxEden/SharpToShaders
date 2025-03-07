@@ -28,13 +28,13 @@ main(){
 	if (_SMOOTH_FADE) {
 		t = (distance(mul(unity_ObjectToWorld, float4(0.0, 0.0, 0.0, 1.0)), _WorldSpaceCameraPos.xyz) - _DistMin) / (_DistMax - _DistMin);
 		t = saturate(t);
-		l1_worldPos = lerp(l1_worldPos, mul(unity_ObjectToWorld, float4(uv.xyz, 1.0)), t);
-		l2_normal = lerp(l2_normal, UnityObjectToWorldNormal(normal2), t);
+		l1_worldPos = mix(l1_worldPos, mul(unity_ObjectToWorld, float4(uv.xyz, 1.0)), t);
+		l2_normal = mix(l2_normal, UnityObjectToWorldNormal(normal2), t);
 	}
 	normal = l2_normal;
 	float intensOr = 1.0 - color.a;
 	float intens = intensOr;
-	float val = lerp(0.0, 0.5, _Wind);
+	float val = mix(0.0, 0.5, _Wind);
 	float _Wavelength = 3.3;
 	float _Speed = 15.0;
 	float _Amplitude = 0.2;
@@ -56,7 +56,7 @@ main(){
 	if (!_SMOOTH_FADE ) {
 		color = color;
 	} else {
-		color = lerp(color, color2, t);
+		color = mix(color, color2, t);
 	}
 	UNITY_TRANSFER_FOG(UNITY_FOG_COORDS, gl_Position);
 	return;//gl_Position is set

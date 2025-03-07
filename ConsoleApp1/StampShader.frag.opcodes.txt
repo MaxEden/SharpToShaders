@@ -1,0 +1,95 @@
+Nop 
+Ldarg IN ParameterDefinition
+Ldfld GenMath.float3 _ConsoleApp1.StampShader/v2f::worldPos FieldDefinition
+Ldfld GenMath.float2 GenMath.float3::xy FieldReference
+Ldarg  ParameterDefinition
+Ldflda GenMath.fixed4 _ConsoleApp1.StampShader::_ScalePattern FieldDefinition
+Ldfld GenMath.fixed2 GenMath.fixed4::xy FieldReference
+Call GenMath.float2 GenMath.float2::op_Multiply(GenMath.float2,GenMath.fixed2) MethodReference
+Stloc V_0 VariableDefinition
+Ldarg  ParameterDefinition
+Ldfld _ConsoleApp1.sampler2D _ConsoleApp1.StampShader::_PatternTex FieldDefinition
+Ldloc V_0 VariableDefinition
+Call GenMath.fixed4 _ConsoleApp1.Unity::tex2D(_ConsoleApp1.sampler2D,GenMath.float2) MethodDefinition
+Stloc V_1 VariableDefinition
+Ldarg  ParameterDefinition
+Ldfld _ConsoleApp1.sampler2D _ConsoleApp1.StampShader::_MainTex FieldDefinition
+Ldarg IN ParameterDefinition
+Ldfld GenMath.half2 _ConsoleApp1.StampShader/v2f::texcoord FieldDefinition
+Call GenMath.float2 GenMath.half2::op_Implicit(GenMath.half2) MethodReference
+Call GenMath.fixed4 _ConsoleApp1.Unity::tex2D(_ConsoleApp1.sampler2D,GenMath.float2) MethodDefinition
+Stloc V_2 VariableDefinition
+Ldloc V_2 VariableDefinition
+Ldfld GenMath.fixed3 GenMath.fixed4::rgb FieldReference
+Call GenMath.float3 GenMath.fixed3::op_Implicit(GenMath.fixed3) MethodReference
+Call System.Single _ConsoleApp1.Unity::Luminance(GenMath.float3) MethodDefinition
+Stloc V_3 VariableDefinition
+Ldloc V_3 VariableDefinition
+Ldarg  ParameterDefinition
+Ldflda GenMath.fixed4 _ConsoleApp1.StampShader::_ScalePattern FieldDefinition
+Ldfld System.Single GenMath.fixed4::z FieldReference
+Sub 
+Stloc V_3 VariableDefinition
+Ldloc V_3 VariableDefinition
+Ldarg  ParameterDefinition
+Ldflda GenMath.fixed4 _ConsoleApp1.StampShader::_ScalePattern FieldDefinition
+Ldfld System.Single GenMath.fixed4::w FieldReference
+Mul 
+Stloc V_3 VariableDefinition
+Ldloca V_2 VariableDefinition
+Ldloc V_3 VariableDefinition
+Call System.Single _ConsoleApp1.math::saturate(System.Single) MethodDefinition
+Ldarg IN ParameterDefinition
+Ldfld GenMath.fixed4 _ConsoleApp1.StampShader/v2f::color FieldDefinition
+Call GenMath.fixed4 GenMath.fixed4::op_Addition(System.Single,GenMath.fixed4) MethodReference
+Call GenMath.fixed3 GenMath.fixed4::op_Implicit(GenMath.fixed4) MethodReference
+Stfld GenMath.fixed3 GenMath.fixed4::rgb FieldReference
+Ldloca V_2 VariableDefinition
+Ldloc V_2 VariableDefinition
+Ldfld System.Single GenMath.fixed4::a FieldReference
+Ldloc V_1 VariableDefinition
+Ldfld System.Single GenMath.fixed4::a FieldReference
+Ldarg  ParameterDefinition
+Ldfld System.Single _ConsoleApp1.StampShader::_AlphaAdd FieldDefinition
+Add 
+Ldarg IN ParameterDefinition
+Ldfld GenMath.fixed4 _ConsoleApp1.StampShader/v2f::color FieldDefinition
+Ldfld System.Single GenMath.fixed4::a FieldReference
+Ldc_R4 1 Single
+Sub 
+Add 
+Mul 
+Stfld System.Single GenMath.fixed4::a FieldReference
+Ldloc V_2 VariableDefinition
+Call GenMath.float4 GenMath.fixed4::op_Implicit(GenMath.fixed4) MethodReference
+Call GenMath.float4 _ConsoleApp1.math::saturate(GenMath.float4) MethodDefinition
+Call GenMath.fixed4 GenMath.float4::op_Implicit(GenMath.float4) MethodReference
+Stloc V_2 VariableDefinition
+Ldloca V_2 VariableDefinition
+Ldflda GenMath.fixed3 GenMath.fixed4::rgb FieldReference
+Dup 
+Ldobj GenMath.fixed3 TypeReference
+Ldloc V_2 VariableDefinition
+Ldfld System.Single GenMath.fixed4::a FieldReference
+Call GenMath.fixed3 GenMath.fixed3::op_Multiply(GenMath.fixed3,System.Single) MethodReference
+Stobj GenMath.fixed3 TypeReference
+Ldloca V_2 VariableDefinition
+Ldflda GenMath.fixed3 GenMath.fixed4::rgb FieldReference
+Dup 
+Ldobj GenMath.fixed3 TypeReference
+Ldc_R4 1 Single
+Ldloc V_2 VariableDefinition
+Ldfld System.Single GenMath.fixed4::a FieldReference
+Sub 
+Call GenMath.fixed3 GenMath.fixed3::op_Addition(GenMath.fixed3,System.Single) MethodReference
+Stobj GenMath.fixed3 TypeReference
+Ldloc V_2 VariableDefinition
+Call GenMath.float4 GenMath.fixed4::op_Implicit(GenMath.fixed4) MethodReference
+Call GenMath.float4 _ConsoleApp1.math::saturate(GenMath.float4) MethodDefinition
+Call GenMath.fixed4 GenMath.float4::op_Implicit(GenMath.float4) MethodReference
+Stloc V_2 VariableDefinition
+Ldloc V_2 VariableDefinition
+Stloc V_4 VariableDefinition
+Br IL_011f: ldloc V_4 Instruction
+Ldloc V_4 VariableDefinition
+Ret 

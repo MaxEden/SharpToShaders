@@ -1,278 +1,385 @@
 Nop 
-Ldc_R4 0 Single
-Stloc V_0 VariableDefinition
-Ldc_I4 0 Int32
-Stloc V_21 VariableDefinition
-Br IL_002d: ldloc V_21 Instruction
-Nop 
-Ldarg  ParameterDefinition
-Ldfld _ConsoleApp1.fixed4[] _ConsoleApp1.BigShader::Positions FieldDefinition
-Ldloc V_21 VariableDefinition
-Ldelem_Any _ConsoleApp1.fixed4 TypeDefinition
-Stloc V_22 VariableDefinition
-Ldloc V_0 VariableDefinition
-Ldloc V_22 VariableDefinition
-Ldfld System.Single _ConsoleApp1.fixed4::x FieldDefinition
-Add 
-Stloc V_0 VariableDefinition
-Nop 
-Ldloc V_21 VariableDefinition
 Ldc_I4 1 Int32
-Add 
-Stloc V_21 VariableDefinition
-Ldloc V_21 VariableDefinition
-Ldc_I4 10 Int32
-Clt 
-Stloc V_23 VariableDefinition
-Ldloc V_23 VariableDefinition
-Brtrue IL_000c: nop Instruction
-Ldloc V_0 VariableDefinition
-Ldc_R4 12345 Single
-Add 
 Stloc V_0 VariableDefinition
-Ldc_R4 0 Single
+Ldc_I4 1 Int32
 Stloc V_1 VariableDefinition
-Ldc_I4 0 Int32
+Ldc_I4 2 Int32
 Stloc V_2 VariableDefinition
-Br IL_0069: ldloc V_2 Instruction
+Br IL_0042: ldloc V_0 Instruction
 Nop 
-Ldarg  ParameterDefinition
-Ldfld _ConsoleApp1.fixed4[] _ConsoleApp1.BigShader::Positions FieldDefinition
-Ldloc V_2 VariableDefinition
-Ldelem_Any _ConsoleApp1.fixed4 TypeDefinition
-Stloc V_24 VariableDefinition
 Ldloc V_1 VariableDefinition
-Ldloc V_24 VariableDefinition
-Ldfld System.Single _ConsoleApp1.fixed4::x FieldDefinition
-Add 
-Stloc V_1 VariableDefinition
 Ldloc V_2 VariableDefinition
-Ldc_I4 1 Int32
-Add 
-Stloc V_2 VariableDefinition
+Cgt 
+Stloc V_24 VariableDefinition
+Ldloc V_24 VariableDefinition
+Brfalse IL_0034: ldloc V_1 Instruction
 Nop 
 Ldloc V_2 VariableDefinition
-Ldc_I4 10 Int32
-Clt 
+Stloc V_1 VariableDefinition
+Ldloc V_2 VariableDefinition
+Ldc_I4 0 Int32
+Cgt 
 Stloc V_25 VariableDefinition
 Ldloc V_25 VariableDefinition
-Brtrue IL_004b: nop Instruction
+Brfalse IL_0033: nop Instruction
+Nop 
+Ldloca V_26 VariableDefinition
+Initobj GenMath.fixed4 TypeReference
+Ldloc V_26 VariableDefinition
+Stloc V_27 VariableDefinition
+Br IL_03f7: ldloc V_27 Instruction
+Nop 
 Ldloc V_1 VariableDefinition
+Ldc_I4 10 Int32
+Cgt 
+Stloc V_28 VariableDefinition
+Ldloc V_28 VariableDefinition
+Brfalse IL_0041: nop Instruction
+Br IL_0049: ldarga i Instruction
+Nop 
+Ldloc V_0 VariableDefinition
+Stloc V_29 VariableDefinition
+Ldloc V_29 VariableDefinition
+Brtrue IL_0009: nop Instruction
+Ldarga i ParameterDefinition
+Ldflda _ConsoleApp1.UNITY_VERTEX_INPUT_INSTANCE_ID Shaders.BigShader/v2fGrass::UNITY_VERTEX_INPUT_INSTANCE_ID FieldDefinition
+Call System.Void _ConsoleApp1.Unity::UNITY_SETUP_INSTANCE_ID(_ConsoleApp1.UNITY_VERTEX_INPUT_INSTANCE_ID&) MethodDefinition
+Nop 
+Ldarga i ParameterDefinition
+Ldflda _ConsoleApp1.UNITY_VERTEX_OUTPUT_STEREO Shaders.BigShader/v2fGrass::UNITY_VERTEX_OUTPUT_STEREO FieldDefinition
+Call System.Void _ConsoleApp1.Unity::UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(_ConsoleApp1.UNITY_VERTEX_OUTPUT_STEREO&) MethodDefinition
+Nop 
+Ldc_R4 0 Single
+Stloc V_3 VariableDefinition
+Ldc_I4 0 Int32
+Stloc V_30 VariableDefinition
+Br IL_008f: ldloc V_30 Instruction
+Nop 
+Ldarg  ParameterDefinition
+Ldfld GenMath.fixed4[] Shaders.BigShader::Positions FieldDefinition
+Ldloc V_30 VariableDefinition
+Ldelem_Any GenMath.fixed4 TypeReference
+Stloc V_31 VariableDefinition
+Ldloc V_3 VariableDefinition
+Ldloc V_31 VariableDefinition
+Ldfld System.Single GenMath.fixed4::x FieldReference
+Add 
+Stloc V_3 VariableDefinition
+Nop 
+Ldloc V_30 VariableDefinition
+Ldc_I4 1 Int32
+Add 
+Stloc V_30 VariableDefinition
+Ldloc V_30 VariableDefinition
+Ldc_I4 10 Int32
+Clt 
+Stloc V_32 VariableDefinition
+Ldloc V_32 VariableDefinition
+Brtrue IL_006e: nop Instruction
+Ldloc V_3 VariableDefinition
+Ldc_R4 12345 Single
+Add 
+Stloc V_3 VariableDefinition
+Ldc_R4 0 Single
+Stloc V_4 VariableDefinition
+Ldc_I4 0 Int32
+Stloc V_5 VariableDefinition
+Br IL_0149: ldloc V_5 Instruction
+Nop 
+Ldloc V_5 VariableDefinition
+Ldc_I4 2 Int32
+Div 
+Stloc V_5 VariableDefinition
+Ldloc V_5 VariableDefinition
+Ldc_I4 1 Int32
+Add 
+Stloc V_33 VariableDefinition
+Ldloc V_33 VariableDefinition
+Ldc_I4 15 Int32
+Cgt 
+Stloc V_35 VariableDefinition
+Ldloc V_35 VariableDefinition
+Brfalse IL_00d0: ldarg  Instruction
+Br IL_0158: ldloc V_4 Instruction
+Ldarg  ParameterDefinition
+Ldfld GenMath.fixed4[] Shaders.BigShader::Positions FieldDefinition
+Ldloc V_5 VariableDefinition
+Ldelem_Any GenMath.fixed4 TypeReference
+Stloc V_34 VariableDefinition
+Ldloc V_4 VariableDefinition
+Ldloc V_34 VariableDefinition
+Ldfld System.Single GenMath.fixed4::x FieldReference
+Add 
+Stloc V_4 VariableDefinition
+Ldloc V_5 VariableDefinition
+Ldc_I4 1 Int32
+Add 
+Stloc V_5 VariableDefinition
+Ldarg facing ParameterDefinition
+Stloc V_36 VariableDefinition
+Ldloc V_36 VariableDefinition
+Brfalse IL_0148: nop Instruction
+Nop 
+Ldloc V_3 VariableDefinition
+Ldc_R4 15 Single
+Cgt 
+Stloc V_37 VariableDefinition
+Ldloc V_37 VariableDefinition
+Brfalse IL_012a: ldloc V_4 Instruction
+Nop 
+Ldc_I4 0 Int32
+Stloc V_38 VariableDefinition
+Br IL_011d: ldloc V_38 Instruction
+Nop 
+Ldloc V_3 VariableDefinition
+Ldloc V_38 VariableDefinition
+Ldc_I4 2 Int32
+Mul 
+Conv_R4 
+Add 
+Stloc V_3 VariableDefinition
+Nop 
+Ldloc V_38 VariableDefinition
+Ldc_I4 1 Int32
+Add 
+Stloc V_38 VariableDefinition
+Ldloc V_38 VariableDefinition
+Ldc_I4 13 Int32
+Clt 
+Stloc V_39 VariableDefinition
+Ldloc V_39 VariableDefinition
+Brtrue IL_010d: nop Instruction
+Nop 
+Ldloc V_4 VariableDefinition
+Ldloc V_3 VariableDefinition
+Clt 
+Stloc V_40 VariableDefinition
+Ldloc V_40 VariableDefinition
+Brfalse IL_0147: nop Instruction
+Nop 
+Ldloca V_26 VariableDefinition
+Initobj GenMath.fixed4 TypeReference
+Ldloc V_26 VariableDefinition
+Stloc V_27 VariableDefinition
+Br IL_03f7: ldloc V_27 Instruction
+Nop 
+Nop 
+Ldloc V_5 VariableDefinition
+Ldc_I4 10 Int32
+Clt 
+Stloc V_41 VariableDefinition
+Ldloc V_41 VariableDefinition
+Brtrue IL_00b2: nop Instruction
+Ldloc V_4 VariableDefinition
 Ldc_R4 5678 Single
 Add 
-Stloc V_1 VariableDefinition
+Stloc V_4 VariableDefinition
 Ldarg facing ParameterDefinition
-Brtrue IL_00a0: ldsflda _ConsoleApp1.float4 _ConsoleApp1.Unity::_WorldSpaceLightPos0 Instruction
+Brtrue IL_0182: ldsflda GenMath.float4 _ConsoleApp1.Unity::_WorldSpaceLightPos0 Instruction
 Ldarga i ParameterDefinition
-Ldflda _ConsoleApp1.float3 _ConsoleApp1.BigShader/v2fGrass::worldPos FieldDefinition
-Call _ConsoleApp1.float3 _ConsoleApp1.float3::get_xyz() MethodDefinition
-Ldsfld _ConsoleApp1.float4 _ConsoleApp1.Unity::_WorldSpaceCameraPos FieldDefinition
-Stloc V_26 VariableDefinition
-Ldloca V_26 VariableDefinition
-Call _ConsoleApp1.float3 _ConsoleApp1.float4::get_xyz() MethodDefinition
-Call _ConsoleApp1.float3 _ConsoleApp1.float3::op_Subtraction(_ConsoleApp1.float3,_ConsoleApp1.float3) MethodDefinition
-Br IL_00b4: stloc V_3 Instruction
-Ldsflda _ConsoleApp1.float4 _ConsoleApp1.Unity::_WorldSpaceLightPos0 FieldDefinition
-Call _ConsoleApp1.float3 _ConsoleApp1.float4::get_xyz() MethodDefinition
+Ldflda GenMath.float3 Shaders.BigShader/v2fGrass::worldPos FieldDefinition
+Call GenMath.float3 GenMath.float3::get_xyz() MethodReference
+Ldsflda GenMath.float4 _ConsoleApp1.Unity::_WorldSpaceCameraPos FieldDefinition
+Ldfld GenMath.float3 GenMath.float4::xyz FieldReference
+Call GenMath.float3 GenMath.float3::op_Subtraction(GenMath.float3,GenMath.float3) MethodReference
+Br IL_0196: stloc V_6 Instruction
+Ldsflda GenMath.float4 _ConsoleApp1.Unity::_WorldSpaceLightPos0 FieldDefinition
+Ldfld GenMath.float3 GenMath.float4::xyz FieldReference
 Ldc_R4 2 Single
-Call _ConsoleApp1.float3 _ConsoleApp1.float3::op_Multiply(_ConsoleApp1.float3,System.Single) MethodDefinition
-Stloc V_3 VariableDefinition
+Call GenMath.float3 GenMath.float3::op_Multiply(GenMath.float3,System.Single) MethodReference
+Stloc V_6 VariableDefinition
 Ldarg facing ParameterDefinition
-Brtrue IL_00bf: ldc.r4 1 Instruction
+Brtrue IL_01a2: ldc.r4 1 Instruction
 Ldc_R4 -1 Single
-Br IL_00c4: ldarg i Instruction
+Br IL_01a7: ldarg i Instruction
 Ldc_R4 1 Single
 Ldarg i ParameterDefinition
-Ldfld _ConsoleApp1.fixed3 _ConsoleApp1.BigShader/v2fGrass::normal FieldDefinition
-Call _ConsoleApp1.fixed3 _ConsoleApp1.fixed3::op_Multiply(System.Single,_ConsoleApp1.fixed3) MethodDefinition
-Call _ConsoleApp1.float3 _ConsoleApp1.math::normalize(_ConsoleApp1.fixed3) MethodDefinition
-Stloc V_4 VariableDefinition
-Ldsflda _ConsoleApp1.float4 _ConsoleApp1.Unity::_WorldSpaceLightPos0 FieldDefinition
-Call _ConsoleApp1.float3 _ConsoleApp1.float4::get_xyz() MethodDefinition
-Call _ConsoleApp1.float3 _ConsoleApp1.math::normalize(_ConsoleApp1.float3) MethodDefinition
-Call _ConsoleApp1.float3 _ConsoleApp1.float3::op_UnaryNegation(_ConsoleApp1.float3) MethodDefinition
-Stloc V_5 VariableDefinition
+Ldfld GenMath.fixed3 Shaders.BigShader/v2fGrass::normal FieldDefinition
+Call GenMath.fixed3 GenMath.fixed3::op_Multiply(System.Single,GenMath.fixed3) MethodReference
+Call GenMath.float3 _ConsoleApp1.math::normalize(GenMath.fixed3) MethodDefinition
+Stloc V_7 VariableDefinition
+Ldsflda GenMath.float4 _ConsoleApp1.Unity::_WorldSpaceLightPos0 FieldDefinition
+Ldfld GenMath.float3 GenMath.float4::xyz FieldReference
+Call GenMath.float3 _ConsoleApp1.math::normalize(GenMath.float3) MethodDefinition
+Call GenMath.float3 GenMath.float3::op_UnaryNegation(GenMath.float3) MethodReference
+Stloc V_8 VariableDefinition
 Ldarga i ParameterDefinition
-Ldflda _ConsoleApp1.float3 _ConsoleApp1.BigShader/v2fGrass::worldPos FieldDefinition
-Call _ConsoleApp1.float3 _ConsoleApp1.float3::get_xyz() MethodDefinition
-Ldsfld _ConsoleApp1.float4 _ConsoleApp1.Unity::_WorldSpaceCameraPos FieldDefinition
-Stloc V_26 VariableDefinition
-Ldloca V_26 VariableDefinition
-Call _ConsoleApp1.float3 _ConsoleApp1.float4::get_xyz() MethodDefinition
-Call _ConsoleApp1.float3 _ConsoleApp1.float3::op_Subtraction(_ConsoleApp1.float3,_ConsoleApp1.float3) MethodDefinition
-Call _ConsoleApp1.float3 _ConsoleApp1.math::normalize(_ConsoleApp1.float3) MethodDefinition
-Stloc V_6 VariableDefinition
-Ldloc V_6 VariableDefinition
-Ldloc V_5 VariableDefinition
-Call _ConsoleApp1.float3 _ConsoleApp1.float3::op_UnaryNegation(_ConsoleApp1.float3) MethodDefinition
-Call System.Single _ConsoleApp1.math::dot(_ConsoleApp1.float3,_ConsoleApp1.float3) MethodDefinition
+Ldflda GenMath.float3 Shaders.BigShader/v2fGrass::worldPos FieldDefinition
+Call GenMath.float3 GenMath.float3::get_xyz() MethodReference
+Ldsflda GenMath.float4 _ConsoleApp1.Unity::_WorldSpaceCameraPos FieldDefinition
+Ldfld GenMath.float3 GenMath.float4::xyz FieldReference
+Call GenMath.float3 GenMath.float3::op_Subtraction(GenMath.float3,GenMath.float3) MethodReference
+Call GenMath.float3 _ConsoleApp1.math::normalize(GenMath.float3) MethodDefinition
+Stloc V_9 VariableDefinition
+Ldloc V_9 VariableDefinition
+Ldloc V_8 VariableDefinition
+Call GenMath.float3 GenMath.float3::op_UnaryNegation(GenMath.float3) MethodReference
+Call System.Single _ConsoleApp1.math::dot(GenMath.float3,GenMath.float3) MethodDefinition
 Call System.Single _ConsoleApp1.math::saturate(System.Single) MethodDefinition
-Stloc V_7 VariableDefinition
-Ldloc V_7 VariableDefinition
-Ldloc V_7 VariableDefinition
+Stloc V_10 VariableDefinition
+Ldloc V_10 VariableDefinition
+Ldloc V_10 VariableDefinition
 Mul 
-Ldloc V_7 VariableDefinition
+Ldloc V_10 VariableDefinition
 Mul 
-Stloc V_7 VariableDefinition
+Stloc V_10 VariableDefinition
 Ldc_R4 1,5 Single
 Ldc_R4 1 Single
-Ldarga i ParameterDefinition
-Ldflda _ConsoleApp1.fixed4 _ConsoleApp1.BigShader/v2fGrass::color FieldDefinition
-Call System.Single _ConsoleApp1.fixed4::get_a() MethodDefinition
+Ldarg i ParameterDefinition
+Ldfld GenMath.fixed4 Shaders.BigShader/v2fGrass::color FieldDefinition
+Ldfld System.Single GenMath.fixed4::a FieldReference
 Sub 
 Mul 
 Call System.Single _ConsoleApp1.math::saturate(System.Single) MethodDefinition
-Stloc V_8 VariableDefinition
-Ldloc V_4 VariableDefinition
-Ldloc V_5 VariableDefinition
-Call System.Single _ConsoleApp1.math::dot(_ConsoleApp1.float3,_ConsoleApp1.float3) MethodDefinition
+Stloc V_11 VariableDefinition
+Ldloc V_7 VariableDefinition
+Ldloc V_8 VariableDefinition
+Call System.Single _ConsoleApp1.math::dot(GenMath.float3,GenMath.float3) MethodDefinition
 Ldc_R4 0,5 Single
 Sub 
 Call System.Single _ConsoleApp1.math::saturate(System.Single) MethodDefinition
-Stloc V_9 VariableDefinition
-Ldloc V_4 VariableDefinition
-Ldloc V_5 VariableDefinition
-Call _ConsoleApp1.float3 _ConsoleApp1.float3::op_UnaryNegation(_ConsoleApp1.float3) MethodDefinition
-Call System.Single _ConsoleApp1.math::dot(_ConsoleApp1.float3,_ConsoleApp1.float3) MethodDefinition
-Stloc V_10 VariableDefinition
+Stloc V_12 VariableDefinition
+Ldloc V_7 VariableDefinition
+Ldloc V_8 VariableDefinition
+Call GenMath.float3 GenMath.float3::op_UnaryNegation(GenMath.float3) MethodReference
+Call System.Single _ConsoleApp1.math::dot(GenMath.float3,GenMath.float3) MethodDefinition
+Stloc V_13 VariableDefinition
 Ldc_R4 0,5 Single
 Ldc_R4 0,5 Single
-Ldloc V_10 VariableDefinition
+Ldloc V_13 VariableDefinition
 Mul 
 Add 
-Stloc V_11 VariableDefinition
-Ldloc V_10 VariableDefinition
+Stloc V_14 VariableDefinition
+Ldloc V_13 VariableDefinition
 Call System.Single _ConsoleApp1.math::saturate(System.Single) MethodDefinition
-Stloc V_10 VariableDefinition
-Ldloc V_10 VariableDefinition
-Ldloc V_11 VariableDefinition
+Stloc V_13 VariableDefinition
+Ldloc V_13 VariableDefinition
+Ldloc V_14 VariableDefinition
 Ldarg  ParameterDefinition
-Ldfld System.Single _ConsoleApp1.BigShader::_Softness FieldDefinition
+Ldfld System.Single Shaders.BigShader::_Softness FieldDefinition
 Call System.Single _ConsoleApp1.math::lerp(System.Single,System.Single,System.Single) MethodDefinition
-Stloc V_10 VariableDefinition
-Ldloca V_12 VariableDefinition
+Stloc V_13 VariableDefinition
+Ldloca V_15 VariableDefinition
 Ldc_R4 1 Single
 Ldc_R4 0,75 Single
 Ldc_R4 0 Single
-Call System.Void _ConsoleApp1.float3::.ctor(System.Single,System.Single,System.Single) MethodDefinition
-Ldloc V_12 VariableDefinition
-Ldfld System.Single _ConsoleApp1.float3::x FieldDefinition
-Ldloc V_7 VariableDefinition
+Call System.Void GenMath.float3::.ctor(System.Single,System.Single,System.Single) MethodReference
+Ldloc V_15 VariableDefinition
+Ldfld System.Single GenMath.float3::x FieldReference
+Ldloc V_10 VariableDefinition
 Mul 
+Ldloc V_15 VariableDefinition
+Ldfld System.Single GenMath.float3::y FieldReference
 Ldloc V_12 VariableDefinition
-Ldfld System.Single _ConsoleApp1.float3::y FieldDefinition
-Ldloc V_9 VariableDefinition
 Mul 
 Add 
 Call System.Single _ConsoleApp1.math::saturate(System.Single) MethodDefinition
-Ldloc V_8 VariableDefinition
+Ldloc V_11 VariableDefinition
 Mul 
-Stloc V_13 VariableDefinition
-Ldarg  ParameterDefinition
-Ldfld _ConsoleApp1.ShaderFeature _ConsoleApp1.BigShader::_UNITY_LIGHTING FieldDefinition
-Call System.Boolean _ConsoleApp1.ShaderFeature::op_Implicit(_ConsoleApp1.ShaderFeature) MethodDefinition
-Stloc V_27 VariableDefinition
-Ldloc V_27 VariableDefinition
-Brfalse IL_0216: nop Instruction
-Nop 
-Ldsfld _ConsoleApp1.float4 _ConsoleApp1.Unity::_LightColor0 FieldDefinition
-Stloc V_14 VariableDefinition
-Ldc_R4 1 Single
-Call _ConsoleApp1.float4 _ConsoleApp1.float4::op_Implicit(System.Single) MethodDefinition
-Stloc V_15 VariableDefinition
-Ldloca V_15 VariableDefinition
-Ldloc V_4 VariableDefinition
-Ldc_R4 1 Single
-Newobj System.Void _ConsoleApp1.float4::.ctor(_ConsoleApp1.float3,System.Single) MethodDefinition
-Call _ConsoleApp1.float3 _ConsoleApp1.Unity::ShadeSH9(_ConsoleApp1.float4) MethodDefinition
-Call System.Void _ConsoleApp1.float4::set_xyz(_ConsoleApp1.float3) MethodDefinition
-Nop 
-Nop 
-Br IL_0232: ldloc V_15 Instruction
-Nop 
-Ldarg  ParameterDefinition
-Ldfld _ConsoleApp1.fixed4 _ConsoleApp1.BigShader::_ColorLight FieldDefinition
-Call _ConsoleApp1.float4 _ConsoleApp1.float4::op_Implicit(_ConsoleApp1.fixed4) MethodDefinition
-Stloc V_14 VariableDefinition
-Ldarg  ParameterDefinition
-Ldfld _ConsoleApp1.fixed4 _ConsoleApp1.BigShader::_ColorShadow FieldDefinition
-Call _ConsoleApp1.float4 _ConsoleApp1.float4::op_Implicit(_ConsoleApp1.fixed4) MethodDefinition
-Stloc V_15 VariableDefinition
-Nop 
-Ldloc V_15 VariableDefinition
-Ldloc V_14 VariableDefinition
-Call _ConsoleApp1.float4 _ConsoleApp1.float4::op_Addition(_ConsoleApp1.float4,_ConsoleApp1.float4) MethodDefinition
 Stloc V_16 VariableDefinition
-Ldloc V_15 VariableDefinition
-Ldloc V_16 VariableDefinition
-Ldloc V_10 VariableDefinition
-Call _ConsoleApp1.float4 _ConsoleApp1.math::lerp(_ConsoleApp1.float4,_ConsoleApp1.float4,System.Single) MethodDefinition
-Stloc V_17 VariableDefinition
 Ldarg  ParameterDefinition
-Ldfld _ConsoleApp1.ShaderFeature _ConsoleApp1.BigShader::_UNITY_LIGHTING FieldDefinition
-Call System.Boolean _ConsoleApp1.ShaderFeature::op_Implicit(_ConsoleApp1.ShaderFeature) MethodDefinition
-Stloc V_28 VariableDefinition
-Ldloc V_28 VariableDefinition
-Brfalse IL_0266: ldarg i Instruction
+Ldfld Shaders.ShaderFeature Shaders.BigShader::_UNITY_LIGHTING FieldDefinition
+Call System.Boolean Shaders.ShaderFeature::op_Implicit(Shaders.ShaderFeature) MethodDefinition
+Stloc V_42 VariableDefinition
+Ldloc V_42 VariableDefinition
+Brfalse IL_02f3: nop Instruction
 Nop 
-Ldloc V_17 VariableDefinition
-Call _ConsoleApp1.float4 _ConsoleApp1.math::saturate(_ConsoleApp1.float4) MethodDefinition
+Ldsfld GenMath.float4 _ConsoleApp1.Unity::_LightColor0 FieldDefinition
 Stloc V_17 VariableDefinition
-Nop 
-Ldarg i ParameterDefinition
-Ldfld _ConsoleApp1.fixed4 _ConsoleApp1.BigShader/v2fGrass::color FieldDefinition
-Call _ConsoleApp1.float4 _ConsoleApp1.float4::op_Implicit(_ConsoleApp1.fixed4) MethodDefinition
-Ldloc V_17 VariableDefinition
-Call _ConsoleApp1.float4 _ConsoleApp1.float4::op_Multiply(_ConsoleApp1.float4,_ConsoleApp1.float4) MethodDefinition
+Ldc_R4 1 Single
+Call GenMath.float4 GenMath.float4::op_Implicit(System.Single) MethodReference
 Stloc V_18 VariableDefinition
+Ldloca V_18 VariableDefinition
+Ldloc V_7 VariableDefinition
+Ldc_R4 1 Single
+Newobj System.Void GenMath.float4::.ctor(GenMath.float3,System.Single) MethodReference
+Call GenMath.float3 _ConsoleApp1.Unity::ShadeSH9(GenMath.float4) MethodDefinition
+Stfld GenMath.float3 GenMath.float4::xyz FieldReference
+Nop 
+Br IL_030f: ldloc V_18 Instruction
+Nop 
 Ldarg  ParameterDefinition
-Ldfld _ConsoleApp1.ShaderFeature _ConsoleApp1.BigShader::_UNITY_LIGHTING FieldDefinition
-Call System.Boolean _ConsoleApp1.ShaderFeature::op_Implicit(_ConsoleApp1.ShaderFeature) MethodDefinition
-Stloc V_29 VariableDefinition
-Ldloc V_29 VariableDefinition
-Brfalse IL_02c0: ldc.r4 1.25 Instruction
+Ldfld GenMath.fixed4 Shaders.BigShader::_ColorLight FieldDefinition
+Call GenMath.float4 GenMath.fixed4::op_Implicit(GenMath.fixed4) MethodReference
+Stloc V_17 VariableDefinition
+Ldarg  ParameterDefinition
+Ldfld GenMath.fixed4 Shaders.BigShader::_ColorShadow FieldDefinition
+Call GenMath.float4 GenMath.fixed4::op_Implicit(GenMath.fixed4) MethodReference
+Stloc V_18 VariableDefinition
 Nop 
 Ldloc V_18 VariableDefinition
-Ldc_R4 0,11 Single
-Ldc_R4 0 Single
-Call _ConsoleApp1.float4 _ConsoleApp1.float4::op_Implicit(System.Single) MethodDefinition
 Ldloc V_17 VariableDefinition
-Ldc_R4 1 Single
-Call _ConsoleApp1.float4 _ConsoleApp1.float4::op_Implicit(System.Single) MethodDefinition
-Call _ConsoleApp1.float4 _ConsoleApp1.float4::op_Subtraction(_ConsoleApp1.float4,_ConsoleApp1.float4) MethodDefinition
-Call _ConsoleApp1.float4 _ConsoleApp1.math::max(_ConsoleApp1.float4,_ConsoleApp1.float4) MethodDefinition
-Call _ConsoleApp1.float4 _ConsoleApp1.float4::op_Multiply(System.Single,_ConsoleApp1.float4) MethodDefinition
-Call _ConsoleApp1.float4 _ConsoleApp1.float4::op_Addition(_ConsoleApp1.float4,_ConsoleApp1.float4) MethodDefinition
-Stloc V_18 VariableDefinition
-Nop 
-Ldc_R4 1,25 Single
-Ldarg i ParameterDefinition
-Ldfld _ConsoleApp1.fixed4 _ConsoleApp1.BigShader/v2fGrass::color FieldDefinition
-Call _ConsoleApp1.fixed4 _ConsoleApp1.fixed4::op_Multiply(System.Single,_ConsoleApp1.fixed4) MethodDefinition
-Call _ConsoleApp1.float4 _ConsoleApp1.float4::op_Implicit(_ConsoleApp1.fixed4) MethodDefinition
-Ldloc V_14 VariableDefinition
-Call _ConsoleApp1.float4 _ConsoleApp1.float4::op_Multiply(_ConsoleApp1.float4,_ConsoleApp1.float4) MethodDefinition
-Ldloc V_14 VariableDefinition
-Ldc_R4 0,25 Single
-Call _ConsoleApp1.float4 _ConsoleApp1.float4::op_Multiply(_ConsoleApp1.float4,System.Single) MethodDefinition
-Call _ConsoleApp1.float4 _ConsoleApp1.float4::op_Addition(_ConsoleApp1.float4,_ConsoleApp1.float4) MethodDefinition
+Call GenMath.float4 GenMath.float4::op_Addition(GenMath.float4,GenMath.float4) MethodReference
 Stloc V_19 VariableDefinition
 Ldloc V_18 VariableDefinition
 Ldloc V_19 VariableDefinition
 Ldloc V_13 VariableDefinition
-Call _ConsoleApp1.float4 _ConsoleApp1.math::lerp(_ConsoleApp1.float4,_ConsoleApp1.float4,System.Single) MethodDefinition
+Call GenMath.float4 _ConsoleApp1.math::lerp(GenMath.float4,GenMath.float4,System.Single) MethodDefinition
 Stloc V_20 VariableDefinition
-Ldloc V_20 VariableDefinition
-Call _ConsoleApp1.float4 _ConsoleApp1.math::saturate(_ConsoleApp1.float4) MethodDefinition
-Stloc V_20 VariableDefinition
-Ldarga i ParameterDefinition
-Ldflda _ConsoleApp1.UNITY_FOG_COORDS _ConsoleApp1.BigShader/v2fGrass::UNITY_FOG_COORDS FieldDefinition
-Ldloca V_20 VariableDefinition
-Call System.Void _ConsoleApp1.Unity::UNITY_APPLY_FOG(_ConsoleApp1.UNITY_FOG_COORDS&,_ConsoleApp1.float4&) MethodDefinition
+Ldarg  ParameterDefinition
+Ldfld Shaders.ShaderFeature Shaders.BigShader::_UNITY_LIGHTING FieldDefinition
+Call System.Boolean Shaders.ShaderFeature::op_Implicit(Shaders.ShaderFeature) MethodDefinition
+Stloc V_43 VariableDefinition
+Ldloc V_43 VariableDefinition
+Brfalse IL_0343: ldarg i Instruction
 Nop 
 Ldloc V_20 VariableDefinition
-Call _ConsoleApp1.fixed4 _ConsoleApp1.float4::op_Implicit(_ConsoleApp1.float4) MethodDefinition
-Stloc V_30 VariableDefinition
-Br IL_031f: ldloc V_30 Instruction
-Ldloc V_30 VariableDefinition
+Call GenMath.float4 _ConsoleApp1.math::saturate(GenMath.float4) MethodDefinition
+Stloc V_20 VariableDefinition
+Nop 
+Ldarg i ParameterDefinition
+Ldfld GenMath.fixed4 Shaders.BigShader/v2fGrass::color FieldDefinition
+Ldloc V_20 VariableDefinition
+Call GenMath.fixed4 GenMath.fixed4::op_Multiply(GenMath.fixed4,GenMath.float4) MethodReference
+Call GenMath.float4 GenMath.fixed4::op_Implicit(GenMath.fixed4) MethodReference
+Stloc V_21 VariableDefinition
+Ldarg  ParameterDefinition
+Ldfld Shaders.ShaderFeature Shaders.BigShader::_UNITY_LIGHTING FieldDefinition
+Call System.Boolean Shaders.ShaderFeature::op_Implicit(Shaders.ShaderFeature) MethodDefinition
+Stloc V_44 VariableDefinition
+Ldloc V_44 VariableDefinition
+Brfalse IL_0398: ldc.r4 1.25 Instruction
+Nop 
+Ldloc V_21 VariableDefinition
+Ldc_R4 0,11 Single
+Ldc_R4 0 Single
+Call GenMath.float4 GenMath.float4::op_Implicit(System.Single) MethodReference
+Ldloc V_20 VariableDefinition
+Ldc_R4 1 Single
+Call GenMath.float4 GenMath.float4::op_Subtraction(GenMath.float4,System.Single) MethodReference
+Call GenMath.float4 _ConsoleApp1.math::max(GenMath.float4,GenMath.float4) MethodDefinition
+Call GenMath.float4 GenMath.float4::op_Multiply(System.Single,GenMath.float4) MethodReference
+Call GenMath.float4 GenMath.float4::op_Addition(GenMath.float4,GenMath.float4) MethodReference
+Stloc V_21 VariableDefinition
+Nop 
+Ldc_R4 1,25 Single
+Ldarg i ParameterDefinition
+Ldfld GenMath.fixed4 Shaders.BigShader/v2fGrass::color FieldDefinition
+Call GenMath.fixed4 GenMath.fixed4::op_Multiply(System.Single,GenMath.fixed4) MethodReference
+Ldloc V_17 VariableDefinition
+Call GenMath.fixed4 GenMath.fixed4::op_Multiply(GenMath.fixed4,GenMath.float4) MethodReference
+Ldloc V_17 VariableDefinition
+Ldc_R4 0,25 Single
+Call GenMath.float4 GenMath.float4::op_Multiply(GenMath.float4,System.Single) MethodReference
+Call GenMath.fixed4 GenMath.fixed4::op_Addition(GenMath.fixed4,GenMath.float4) MethodReference
+Call GenMath.float4 GenMath.fixed4::op_Implicit(GenMath.fixed4) MethodReference
+Stloc V_22 VariableDefinition
+Ldloc V_21 VariableDefinition
+Ldloc V_22 VariableDefinition
+Ldloc V_16 VariableDefinition
+Call GenMath.float4 _ConsoleApp1.math::lerp(GenMath.float4,GenMath.float4,System.Single) MethodDefinition
+Stloc V_23 VariableDefinition
+Ldloc V_23 VariableDefinition
+Call GenMath.float4 _ConsoleApp1.math::saturate(GenMath.float4) MethodDefinition
+Stloc V_23 VariableDefinition
+Ldarga i ParameterDefinition
+Ldflda _ConsoleApp1.UNITY_FOG_COORDS Shaders.BigShader/v2fGrass::UNITY_FOG_COORDS FieldDefinition
+Ldloca V_23 VariableDefinition
+Call System.Void _ConsoleApp1.Unity::UNITY_APPLY_FOG(_ConsoleApp1.UNITY_FOG_COORDS&,GenMath.float4&) MethodDefinition
+Nop 
+Ldloc V_23 VariableDefinition
+Call GenMath.fixed4 GenMath.float4::op_Implicit(GenMath.float4) MethodReference
+Stloc V_27 VariableDefinition
+Br IL_03f7: ldloc V_27 Instruction
+Ldloc V_27 VariableDefinition
 Ret 

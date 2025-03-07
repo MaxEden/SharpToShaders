@@ -2,6 +2,7 @@
 using Lemon.Tools;
 using Mono.Cecil;
 using Mono.Cecil.Rocks;
+using Shader.BuildTarget;
 using Watchers;
 
 namespace Compiler
@@ -33,12 +34,10 @@ namespace Compiler
 
                 foreach (var item in types)
                 {
-                    if (item.Implements("ConsoleApp1.IShader"))
+                    if (item.Implements("Shader.Lib.IShader"))
                     {
                         var builder = new ShaderBuilder();
-                        builder.Build(_srcPath + "/", item);
-
-                       
+                        builder.Build(new GLSL(), _srcPath + "/", item);                     
                     }
                 }
             }

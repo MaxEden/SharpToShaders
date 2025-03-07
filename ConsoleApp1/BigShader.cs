@@ -1,13 +1,7 @@
 ﻿using ConsoleApp1;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 using _ConsoleApp1;
-using GenMath;
+using Shader.Lib;
+using Shader.Vectors;
 
 namespace Shaders
 {
@@ -39,7 +33,7 @@ namespace Shaders
             [COLOR] public fixed4 color;
             [TEXCOORD1] public fixed4 color2;
 
-            public UNITY_VERTEX_INPUT_INSTANCE_ID UNITY_VERTEX_INPUT_INSTANCE_ID;
+            public VERTEX_INPUT_INSTANCE_ID UNITY_VERTEX_INPUT_INSTANCE_ID;
         };
 
         struct v2fGrass
@@ -49,9 +43,9 @@ namespace Shaders
             [NORMAL] public fixed3 normal;
             [POSITION1] public float3 worldPos;
 
-            public UNITY_VERTEX_INPUT_INSTANCE_ID UNITY_VERTEX_INPUT_INSTANCE_ID;
-            public UNITY_VERTEX_OUTPUT_STEREO UNITY_VERTEX_OUTPUT_STEREO;
-            public UNITY_FOG_COORDS UNITY_FOG_COORDS;
+            public VERTEX_INPUT_INSTANCE_ID UNITY_VERTEX_INPUT_INSTANCE_ID;
+            public VERTEX_OUTPUT_STEREO UNITY_VERTEX_OUTPUT_STEREO;
+            public FOG_COORDS UNITY_FOG_COORDS;
         };
 
         fixed4 _ColorLight;
@@ -68,26 +62,26 @@ namespace Shaders
         {
             v2fGrass o;
 
-            Unity.UNITY_SETUP_INSTANCE_ID(ref v.UNITY_VERTEX_INPUT_INSTANCE_ID);
-            Unity.UNITY_TRANSFER_INSTANCE_ID(ref v.UNITY_VERTEX_INPUT_INSTANCE_ID, ref o.UNITY_VERTEX_INPUT_INSTANCE_ID);
-            Unity.UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(ref o.UNITY_VERTEX_OUTPUT_STEREO);
+            Unity.SETUP_INSTANCE_ID(ref v.UNITY_VERTEX_INPUT_INSTANCE_ID);
+            Unity.TRANSFER_INSTANCE_ID(ref v.UNITY_VERTEX_INPUT_INSTANCE_ID, ref o.UNITY_VERTEX_INPUT_INSTANCE_ID);
+            Unity.INITIALIZE_VERTEX_OUTPUT_STEREO(ref o.UNITY_VERTEX_OUTPUT_STEREO);
 
 
-            float3 worldPos = math.mul(Unity.unity_ObjectToWorld, new float4(v.vertex.xyz, 1.0f));
-            float3 normal = Unity.UnityObjectToWorldNormal(v.normal);
+            float3 worldPos = math.mul(Unity.ObjectToWorld, new float4(v.vertex.xyz, 1.0f));
+            float3 normal = Unity.ObjectToWorldNormal(v.normal);
 
             float t = 0;
 
             if (_SMOOTH_FADE)
             {
 
-                float3 centerPos = math.mul(Unity.unity_ObjectToWorld, new float4(0, 0, 0, 1.0f));
+                float3 centerPos = math.mul(Unity.ObjectToWorld, new float4(0, 0, 0, 1.0f));
                 float dist = math.distance(centerPos, Unity._WorldSpaceCameraPos.xyz);
                 t = (dist - _DistMin) / (_DistMax - _DistMin);
                 t = math.saturate(t);
 
-                float3 worldPos2 = math.mul(Unity.unity_ObjectToWorld, new float4(v.uv.xyz, 1.0f));
-                float3 normal2 = Unity.UnityObjectToWorldNormal(v.normal2);
+                float3 worldPos2 = math.mul(Unity.ObjectToWorld, new float4(v.uv.xyz, 1.0f));
+                float3 normal2 = Unity.ObjectToWorldNormal(v.normal2);
 
                 worldPos = math.lerp(worldPos, worldPos2, t);
                 normal = math.lerp(normal, normal2, t);
@@ -114,7 +108,7 @@ namespace Shaders
 
 
             float3 p = worldPos;
-            float k = 2 * Unity.UNITY_PI / _Wavelength;
+            float k = 2 * Unity.PI / _Wavelength;
             float f = k * (p.x - _Speed * (Unity._Time.y + v.uv.w * tShift)); //
 
             float sr;
@@ -127,7 +121,7 @@ namespace Shaders
             worldPos = p;
 
             o.worldPos = worldPos;
-            o.vertex = math.mul(Unity.UNITY_MATRIX_VP, new float4(worldPos.xyz, 1.0f));
+            o.vertex = math.mul(Unity.MATRIX_VP, new float4(worldPos.xyz, 1.0f));
 
             //o.uv = TRANSFORM_TEX(v.uv, _MainTex);
             //o.uv = v.uv;
@@ -144,7 +138,7 @@ namespace Shaders
 
             //if(tShift>0) o.color = float4(1,0,0,1);                 
 
-            Unity.UNITY_TRANSFER_FOG(ref o.UNITY_FOG_COORDS, o.vertex);
+            Unity.TRANSFER_FOG(ref o.UNITY_FOG_COORDS, o.vertex);
 
             //o.color.w = t;
             return o;
@@ -173,8 +167,8 @@ namespace Shaders
 
             //return default;
 
-            Unity.UNITY_SETUP_INSTANCE_ID(ref i.UNITY_VERTEX_INPUT_INSTANCE_ID);
-            Unity.UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(ref i.UNITY_VERTEX_OUTPUT_STEREO);
+            Unity.SETUP_INSTANCE_ID(ref i.UNITY_VERTEX_INPUT_INSTANCE_ID);
+            Unity.SETUP_STEREO_EYE_INDEX_POST_VERTEX(ref i.UNITY_VERTEX_OUTPUT_STEREO);
 
             //return i.normal.xyzz;
 
@@ -252,7 +246,7 @@ namespace Shaders
                 colorLight = Unity._LightColor0;
                 colorShadow = 1; //float4(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w, 1);
                 colorShadow.xyz = Unity.ShadeSH9(new float4(norm, 1.0f));
-
+                
                 //float4 res = float4(ShadeSH9(float4(norm, 1.0)),1);
                 //return res;
             }
@@ -289,7 +283,7 @@ namespace Shaders
 
             //result = color;
 
-            Unity.UNITY_APPLY_FOG(ref i.UNITY_FOG_COORDS, ref result);
+            Unity.APPLY_FOG(ref i.UNITY_FOG_COORDS, ref result);
             return result;//*_DebugColor;//*i.color.w;
 
             return default;

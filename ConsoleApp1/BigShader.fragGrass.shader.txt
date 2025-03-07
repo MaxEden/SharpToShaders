@@ -90,7 +90,7 @@ float sss2;
 	float sun = dot(norm, -lightDir);
 	float sunL = 0.5 + (0.5 * sun);
 	sun = saturate(sun);
-	sun = lerp(sun, sunL, _Softness);
+	sun = mix(sun, sunL, _Softness);
 	coeff = float3(1.0, 0.8, 0.0)
 	float through = saturate((coeff.x * flare) + (coeff.y * fnorm)) * transl;
 	if (!_UNITY_LIGHTING ) {
@@ -102,7 +102,7 @@ float sss2;
 		colorShadow.xyz = ShadeSH9(float4(norm, 1.0));
 	}
 	vec4 lcolor = colorShadow + colorLight;
-	vec4 sunColor = lerp(colorShadow, lcolor, sun);
+	vec4 sunColor = mix(colorShadow, lcolor, sun);
 	if (_UNITY_LIGHTING) {
 		sunColor = saturate(sunColor);
 	}
@@ -111,7 +111,7 @@ float sss2;
 		l21_color = l21_color + (0.1 * max(0.0, sunColor - 1.0));
 	}
 	vec4 throughColor = ((1.3 * color) * colorLight) + (colorLight * 0.3);
-	vec4 result = lerp(l21_color, throughColor, through);
+	vec4 result = mix(l21_color, throughColor, through);
 	result = saturate(result);
 	UNITY_APPLY_FOG(UNITY_FOG_COORDS, result);
 	result27 = result;
