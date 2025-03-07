@@ -57,31 +57,31 @@ namespace Shaders
         fixed4 _DebugColor;
 
         private fixed4[] Positions;
-
+        private string vertName => nameof(vertGrass);
         v2fGrass vertGrass(appdataGrass v)
         {
             v2fGrass o;
 
-            Unity.SETUP_INSTANCE_ID(ref v.UNITY_VERTEX_INPUT_INSTANCE_ID);
-            Unity.TRANSFER_INSTANCE_ID(ref v.UNITY_VERTEX_INPUT_INSTANCE_ID, ref o.UNITY_VERTEX_INPUT_INSTANCE_ID);
-            Unity.INITIALIZE_VERTEX_OUTPUT_STEREO(ref o.UNITY_VERTEX_OUTPUT_STEREO);
+            UGlobal.SETUP_INSTANCE_ID(ref v.UNITY_VERTEX_INPUT_INSTANCE_ID);
+            UGlobal.TRANSFER_INSTANCE_ID(ref v.UNITY_VERTEX_INPUT_INSTANCE_ID, ref o.UNITY_VERTEX_INPUT_INSTANCE_ID);
+            UGlobal.INITIALIZE_VERTEX_OUTPUT_STEREO(ref o.UNITY_VERTEX_OUTPUT_STEREO);
 
 
-            float3 worldPos = math.mul(Unity.ObjectToWorld, new float4(v.vertex.xyz, 1.0f));
-            float3 normal = Unity.ObjectToWorldNormal(v.normal);
+            float3 worldPos = math.mul(Global.ObjectToWorld, new float4(v.vertex.xyz, 1.0f));
+            float3 normal = Global.ObjectToWorldNormal(v.normal);
 
             float t = 0;
 
             if (_SMOOTH_FADE)
             {
 
-                float3 centerPos = math.mul(Unity.ObjectToWorld, new float4(0, 0, 0, 1.0f));
-                float dist = math.distance(centerPos, Unity._WorldSpaceCameraPos.xyz);
+                float3 centerPos = math.mul(Global.ObjectToWorld, new float4(0, 0, 0, 1.0f));
+                float dist = math.distance(centerPos, Global._WorldSpaceCameraPos.xyz);
                 t = (dist - _DistMin) / (_DistMax - _DistMin);
                 t = math.saturate(t);
 
-                float3 worldPos2 = math.mul(Unity.ObjectToWorld, new float4(v.uv.xyz, 1.0f));
-                float3 normal2 = Unity.ObjectToWorldNormal(v.normal2);
+                float3 worldPos2 = math.mul(Global.ObjectToWorld, new float4(v.uv.xyz, 1.0f));
+                float3 normal2 = Global.ObjectToWorldNormal(v.normal2);
 
                 worldPos = math.lerp(worldPos, worldPos2, t);
                 normal = math.lerp(normal, normal2, t);
@@ -102,14 +102,14 @@ namespace Shaders
             intens *= val;
             _Speed *= val;
 
-            float windForce = 0.5f + math.sin(0.75f * Unity._Time.y);
+            float windForce = 0.5f + math.sin(0.75f * Global._Time.y);
             float4 wave = new float4(0.3f, -0.15f, 0.31f, 0) * windForce;
             float tShift = math.saturate(windForce - 0.75f) * 0.01f;
 
 
             float3 p = worldPos;
-            float k = 2 * Unity.PI / _Wavelength;
-            float f = k * (p.x - _Speed * (Unity._Time.y + v.uv.w * tShift)); //
+            float k = 2 * Global.PI / _Wavelength;
+            float f = k * (p.x - _Speed * (Global._Time.y + v.uv.w * tShift)); //
 
             float sr;
             float cr;
@@ -121,7 +121,7 @@ namespace Shaders
             worldPos = p;
 
             o.worldPos = worldPos;
-            o.vertex = math.mul(Unity.MATRIX_VP, new float4(worldPos.xyz, 1.0f));
+            o.vertex = math.mul(Global.MATRIX_VP, new float4(worldPos.xyz, 1.0f));
 
             //o.uv = TRANSFORM_TEX(v.uv, _MainTex);
             //o.uv = v.uv;
@@ -138,7 +138,7 @@ namespace Shaders
 
             //if(tShift>0) o.color = float4(1,0,0,1);                 
 
-            Unity.TRANSFER_FOG(ref o.UNITY_FOG_COORDS, o.vertex);
+            UGlobal.TRANSFER_FOG(ref o.UNITY_FOG_COORDS, o.vertex);
 
             //o.color.w = t;
             return o;
@@ -167,8 +167,8 @@ namespace Shaders
 
             //return default;
 
-            Unity.SETUP_INSTANCE_ID(ref i.UNITY_VERTEX_INPUT_INSTANCE_ID);
-            Unity.SETUP_STEREO_EYE_INDEX_POST_VERTEX(ref i.UNITY_VERTEX_OUTPUT_STEREO);
+            UGlobal.SETUP_INSTANCE_ID(ref i.UNITY_VERTEX_INPUT_INSTANCE_ID);
+            UGlobal.SETUP_STEREO_EYE_INDEX_POST_VERTEX(ref i.UNITY_VERTEX_OUTPUT_STEREO);
 
             //return i.normal.xyzz;
 
@@ -218,12 +218,12 @@ namespace Shaders
             //return default;
 
 
-            var dir = facing ? Unity._WorldSpaceLightPos0.xyz * 2 : i.worldPos.xyz - Unity._WorldSpaceCameraPos.xyz;
+            var dir = facing ? Global._WorldSpaceLightPos0.xyz * 2 : i.worldPos.xyz - Global._WorldSpaceCameraPos.xyz;
 
             float3 norm = math.normalize((facing ? 1.0f : -1.0f) * i.normal);
 
-            float3 lightDir = -math.normalize(Unity._WorldSpaceLightPos0.xyz);
-            float3 viewDir = math.normalize(i.worldPos.xyz - Unity._WorldSpaceCameraPos.xyz);
+            float3 lightDir = -math.normalize(Global._WorldSpaceLightPos0.xyz);
+            float3 viewDir = math.normalize(i.worldPos.xyz - Global._WorldSpaceCameraPos.xyz);
 
             float flare = math.saturate(math.dot(viewDir, -lightDir));
             flare = flare * flare * flare;
@@ -243,9 +243,9 @@ namespace Shaders
 
             if (_UNITY_LIGHTING)
             {
-                colorLight = Unity._LightColor0;
+                colorLight = Global._LightColor0;
                 colorShadow = 1; //float4(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w, 1);
-                colorShadow.xyz = Unity.ShadeSH9(new float4(norm, 1.0f));
+                colorShadow.xyz = UGlobal.ShadeSH9(new float4(norm, 1.0f));
                 
                 //float4 res = float4(ShadeSH9(float4(norm, 1.0)),1);
                 //return res;
@@ -283,7 +283,7 @@ namespace Shaders
 
             //result = color;
 
-            Unity.APPLY_FOG(ref i.UNITY_FOG_COORDS, ref result);
+            UGlobal.APPLY_FOG(ref i.UNITY_FOG_COORDS, ref result);
             return result;//*_DebugColor;//*i.color.w;
 
             return default;

@@ -14,8 +14,8 @@
 	string[] names = new[]
 	{
 		"float",
-		"fixed",
-		"half"
+		//"fixed",
+		//"half"
 	};
 
 	string[] fields = new[]
@@ -78,21 +78,81 @@
 
 					if(x==0 && y==1 && z==2) continue; 
 
-					var name = fields[x] + fields[y] + fields[z];
-					var args = fields[x] + "," + fields[y] + "," + fields[z];
+					var name = new StringBuilder();
+					name.Append(fields[x]);
+					name.Append(fields[y]);
+					name.Append(fields[z]);
+					
+					var args = new StringBuilder();
+					args.Append(fields[x]);
+					args.Append(',');
+					args.Append(fields[y]);
+					args.Append(',');
+					args.Append(fields[z]);
 
-					var sets = "this." + fields[x] + "= value.x;";
-					sets += "this." + fields[y] + "= value.y;";
-					sets += "this." + fields[z] + "= value.z;";
+					var sets = new StringBuilder();
+					sets.Append(fields[x]);
+					sets.Append("= value.x;");
+					sets.Append(fields[y]);
+					sets.Append("= value.y;");
+					sets.Append(fields[z]);
+					sets.Append("= value.z;");
 
 					swizzles.Add(
-							(name,
-							args,
-							sets,
+							(name.ToString(),
+							args.ToString(),
+							sets.ToString(),
 							new []{x,y,z})
 						);
 				}
 
+				//============
+				var hashSet3 = new HashSet<(int,int,int, int)>();
+				
+				for (int x = 0; x < n; x++)
+				for (int y = 0; y < n; y++)
+				for (int z = 0; z < n; z++)
+				for (int w = 0; w < n; w++)
+				{
+					if(hashSet3.Contains((x,y,z,w))) continue;
+					hashSet3.Add((x,y,z,w));
+
+					if(x==0 && y==1 && z==2 && w == 3) continue; 
+
+					var name = new StringBuilder();
+					name.Append(fields[x]);
+					name.Append(fields[y]);
+					name.Append(fields[z]);
+					name.Append(fields[w]);
+					
+					var args = new StringBuilder();
+					args.Append(fields[x]);
+					args.Append(',');
+					args.Append(fields[y]);
+					args.Append(',');
+					args.Append(fields[z]);
+					args.Append(',');
+					args.Append(fields[w]);
+
+					var sets = new StringBuilder();
+					sets.Append(fields[x]);
+					sets.Append("= value.x;");
+					sets.Append(fields[y]);
+					sets.Append("= value.y;");
+					sets.Append(fields[z]);
+					sets.Append("= value.z;");
+					sets.Append(fields[w]);
+					sets.Append("= value.w;");
+
+					swizzles.Add(
+							(name.ToString(),
+							args.ToString(),
+							sets.ToString(),
+							new []{x,y,z,w})
+						);
+				}
+
+				//=========
 			return swizzles;
 	};
 

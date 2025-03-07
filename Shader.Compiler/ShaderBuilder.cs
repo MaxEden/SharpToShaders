@@ -73,12 +73,16 @@ namespace Compiler
         private IBuildTarget _buildTarget;
         private ProgramType _programType;
 
+        
+
         public Dictionary<FieldReference, Var> Varyings  => _varyings;
-        public List<NamedStack> NamedLocals => _namedStkLocals;
+        public List<NamedStack> NamedStackLocals => _namedStkLocals;
 
         public StringBuilder Body => _body;
 
         public LocalVar[] Locals => _locals;
+
+        public ProgramType Program => _programType;
 
         public void Build(IBuildTarget buildTarget, string path, TypeDefinition type)
         {
@@ -114,6 +118,13 @@ namespace Compiler
             Attribute,
             Uniform
         }
+
+        public enum InputType
+        {
+            None,
+            In,
+            Out            
+        }
         public class Var
         {
             public VarType Type;
@@ -121,6 +132,8 @@ namespace Compiler
             public string Name;
             public bool IsUsed;
             public bool BuiltIn;
+            public InputType InputType;
+            public string Semantic;
         }
 
         internal string Build(IBuildTarget buildTarget, string path, TypeDefinition type, MethodDefinition method, ProgramType programType)
@@ -130,7 +143,7 @@ namespace Compiler
             _buildTarget = buildTarget;
             _buildTarget.Context = new Context
             {
-                ProgramType = programType
+                Builder = this
             };
             _programType = programType;
             _indent = 0;
@@ -160,58 +173,18 @@ namespace Compiler
 
             var sb = new StringBuilder();
 
-            var usedVaryings = _varyings.Values.Where(p => p.IsUsed).ToArray();
-            var usedLocals = _locals.Where(p => !p.canBeOmitted && !p.canBeRef && !p.canInline).ToArray();
-            var usedNamedLocals = _namedStkLocals.ToArray();
+          
             _buildTarget.Context.Builder = this;
 
-            _buildTarget.WriteHeader(sb, usedVaryings, usedLocals, usedNamedLocals);
-
-            //foreach (var field in usedVaryings.Where(p=> !p.BuiltIn && p.Type == VarType.Attribute))
-            //{
-            //    sb.AppendLine($"attribute {MapTypeName(field.FieldType)} {field.Name};");
-            //}
-
-            //sb.AppendLine();
-            //foreach (var field in usedVaryings.Where(p=> !p.BuiltIn && p.Type == VarType.Uniform))
-            //{
-            //    sb.AppendLine($"uniform {MapTypeName(field.FieldType)} {field.Name};");
-            //}
-            //sb.AppendLine();
-            //foreach (var field in usedVaryings.Where(p=> p.Type == VarType.Varying))
-            //{
-            //    sb.AppendLine($"varying {MapTypeName(field.FieldType)} {field.Name};");
-            //}
-            //sb.AppendLine();
-            //sb.AppendLine($"main(){{");
-
-            //for (int i = 0; i < _locals.Length; i++)
-            //{
-            //    if (_locals[i].canBeOmitted) continue;
-            //    if (_locals[i].canBeRef) continue;
-            //    if (_locals[i].canInline) continue;
-            //    sb.AppendLine(
-            //        $"{MapTypeName(_locals[i].definition.VariableType)} {_locals[i]};"
-            //    );
-            //}
-
-            //foreach (var stack in _namedStkLocals)
-            //{
-            //    sb.AppendLine(
-            //        $"{stack.expectedType} {stack.name};"
-            //    );
-            //}
-
-            sb.AppendLine(_body.ToString());
-
-            _buildTarget.WriteFooter(sb);
-            
+            _buildTarget.WriteOut(sb);
+           
             sb.AppendLine("/*___unresolved_____");
             sb.AppendLine(_unresolved.ToString());
             sb.AppendLine("_____________*/");
 
+            var name = type.Name + "." + method.Name + "." + _buildTarget.GetType().Name.ToLowerInvariant() + ".shader.txt";
 
-            File.WriteAllText(path + type.Name + "." + method.Name + ".shader.txt", sb.ToString());
+            File.WriteAllText(path + name, sb.ToString());
 
 
             var output = _body.ToString();
@@ -248,51 +221,19 @@ namespace Compiler
                 foreach (var parameter in method.Parameters.ToArray())
                 {
                     foreach (var field in parameter.ParameterType.Resolve().Fields)
-                    {                        
-                            _varyings.Add(field,
-                                new Var()
-                                {
-                                    Name = field.Name,
-                                    FieldType = field.FieldType,
-                                    Type = VarType.Attribute
-                                });
-                    }
-                }
-
-                foreach (var field in method.ReturnType.Resolve().Fields)
-                {
-                    if (field.HasAttribute("POSITIONAttribute"))
                     {
-                        _varyings.Add(field,
-                            new Var()
-                            {
-                                Name = "gl_Position",
-                                BuiltIn = true,
-                                FieldType = field.FieldType,
-                                Type = VarType.Attribute
-                            });
-                    }
-                    else
-                    {
-                        _varyings.Add(field,
-                            new Var()
-                            {
-                                Name = field.Name,
-                                FieldType = field.FieldType,
-                                Type = VarType.Varying
-                            });
+                        _buildTarget.AddVarying(_programType, field, VarType.Attribute, InputType.In);
                     }
                 }
 
                 foreach (var field in typeDefinition.Fields)
                 {
-                    _varyings.Add(field,
-                        new Var()
-                        {
-                            Name = field.Name,
-                            FieldType = field.FieldType,
-                            Type = VarType.Uniform
-                        });
+                    _buildTarget.AddVarying(_programType, field, VarType.Uniform, InputType.In);
+                }
+
+                foreach (var field in method.ReturnType.Resolve().Fields)
+                {
+                    _buildTarget.AddVarying(_programType, field, VarType.Varying, InputType.Out);
                 }
             }
 
@@ -307,34 +248,15 @@ namespace Compiler
                     else
                     {
                         foreach (var field in parameter.ParameterType.Resolve().Fields)
-                        {
-                            if (field.HasAttribute("POSITIONAttribute"))
-                            {
-
-                            }
-                            else
-                            {
-                                _varyings.Add(field,
-                                    new Var()
-                                    {
-                                        Name = field.Name,
-                                        FieldType = field.FieldType,
-                                        Type = VarType.Varying
-                                    });
-                            }
+                        {                           
+                             _buildTarget.AddVarying(_programType, field, VarType.Varying, InputType.In);
                         }
                     }
                 }
 
                 foreach (var field in typeDefinition.Fields)
                 {
-                    _varyings.Add(field,
-                        new Var()
-                        {
-                            Name = field.Name,
-                            FieldType = field.FieldType,
-                            Type = VarType.Uniform
-                        });
+                    _buildTarget.AddVarying(_programType, field, VarType.Uniform, InputType.In);
                 }
             }
 
@@ -1247,18 +1169,6 @@ namespace Compiler
             {
                 return true;
             }
-
-            //if (_programType == ProgramType.Vertex)
-            //{
-            //    text = $"return;//gl_Position is set";
-            //    return true;
-            //}
-
-            //if (_programType == ProgramType.Fragment)
-            //{
-            //    text = $"gl_FragColor = {popped}; return;";
-            //    return true;
-            //}
 
             text = default;
             return false;

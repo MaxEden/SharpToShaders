@@ -1,30 +1,30 @@
 Nop 
 Ldarga v ParameterDefinition
-Ldflda _ConsoleApp1.UNITY_VERTEX_INPUT_INSTANCE_ID Shaders.BigShader/appdataGrass::UNITY_VERTEX_INPUT_INSTANCE_ID FieldDefinition
-Call System.Void _ConsoleApp1.Unity::UNITY_SETUP_INSTANCE_ID(_ConsoleApp1.UNITY_VERTEX_INPUT_INSTANCE_ID&) MethodDefinition
+Ldflda _ConsoleApp1.VERTEX_INPUT_INSTANCE_ID Shaders.BigShader/appdataGrass::UNITY_VERTEX_INPUT_INSTANCE_ID FieldDefinition
+Call System.Void _ConsoleApp1.UGlobal::SETUP_INSTANCE_ID(_ConsoleApp1.VERTEX_INPUT_INSTANCE_ID&) MethodDefinition
 Nop 
 Ldarga v ParameterDefinition
-Ldflda _ConsoleApp1.UNITY_VERTEX_INPUT_INSTANCE_ID Shaders.BigShader/appdataGrass::UNITY_VERTEX_INPUT_INSTANCE_ID FieldDefinition
+Ldflda _ConsoleApp1.VERTEX_INPUT_INSTANCE_ID Shaders.BigShader/appdataGrass::UNITY_VERTEX_INPUT_INSTANCE_ID FieldDefinition
 Ldloca V_0 VariableDefinition
-Ldflda _ConsoleApp1.UNITY_VERTEX_INPUT_INSTANCE_ID Shaders.BigShader/v2fGrass::UNITY_VERTEX_INPUT_INSTANCE_ID FieldDefinition
-Call System.Void _ConsoleApp1.Unity::UNITY_TRANSFER_INSTANCE_ID(_ConsoleApp1.UNITY_VERTEX_INPUT_INSTANCE_ID&,_ConsoleApp1.UNITY_VERTEX_INPUT_INSTANCE_ID&) MethodDefinition
+Ldflda _ConsoleApp1.VERTEX_INPUT_INSTANCE_ID Shaders.BigShader/v2fGrass::UNITY_VERTEX_INPUT_INSTANCE_ID FieldDefinition
+Call System.Void _ConsoleApp1.UGlobal::TRANSFER_INSTANCE_ID(_ConsoleApp1.VERTEX_INPUT_INSTANCE_ID&,_ConsoleApp1.VERTEX_INPUT_INSTANCE_ID&) MethodDefinition
 Nop 
 Ldloca V_0 VariableDefinition
-Ldflda _ConsoleApp1.UNITY_VERTEX_OUTPUT_STEREO Shaders.BigShader/v2fGrass::UNITY_VERTEX_OUTPUT_STEREO FieldDefinition
-Call System.Void _ConsoleApp1.Unity::UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(_ConsoleApp1.UNITY_VERTEX_OUTPUT_STEREO&) MethodDefinition
+Ldflda _ConsoleApp1.VERTEX_OUTPUT_STEREO Shaders.BigShader/v2fGrass::UNITY_VERTEX_OUTPUT_STEREO FieldDefinition
+Call System.Void _ConsoleApp1.UGlobal::INITIALIZE_VERTEX_OUTPUT_STEREO(_ConsoleApp1.VERTEX_OUTPUT_STEREO&) MethodDefinition
 Nop 
-Ldsfld System.Numerics.Matrix4x4 _ConsoleApp1.Unity::unity_ObjectToWorld FieldDefinition
+Ldsfld System.Numerics.Matrix4x4 Shader.Lib.Global::ObjectToWorld FieldReference
 Ldarga v ParameterDefinition
-Ldflda GenMath.float3 Shaders.BigShader/appdataGrass::vertex FieldDefinition
-Call GenMath.float3 GenMath.float3::get_xyz() MethodReference
+Ldflda Shader.Vectors.float3 Shaders.BigShader/appdataGrass::vertex FieldDefinition
+Call Shader.Vectors.float3 Shader.Vectors.float3::get_xyz() MethodReference
 Ldc_R4 1 Single
-Newobj System.Void GenMath.float4::.ctor(GenMath.float3,System.Single) MethodReference
-Call GenMath.float4 _ConsoleApp1.math::mul(System.Numerics.Matrix4x4,GenMath.float4) MethodDefinition
-Call GenMath.float3 GenMath.float4::op_Implicit(GenMath.float4) MethodReference
+Newobj System.Void Shader.Vectors.float4::.ctor(Shader.Vectors.float3,System.Single) MethodReference
+Call Shader.Vectors.float4 Shader.Lib.math::mul(System.Numerics.Matrix4x4,Shader.Vectors.float4) MethodReference
+Call Shader.Vectors.float3 Shader.Vectors.float4::op_Implicit(Shader.Vectors.float4) MethodReference
 Stloc V_1 VariableDefinition
 Ldarg v ParameterDefinition
-Ldfld GenMath.fixed3 Shaders.BigShader/appdataGrass::normal FieldDefinition
-Call GenMath.float3 _ConsoleApp1.Unity::UnityObjectToWorldNormal(GenMath.fixed3) MethodDefinition
+Ldfld Shader.Vectors.fixed3 Shaders.BigShader/appdataGrass::normal FieldDefinition
+Call Shader.Vectors.float3 Shader.Lib.Global::ObjectToWorldNormal(Shader.Vectors.fixed3) MethodReference
 Stloc V_2 VariableDefinition
 Ldc_R4 0 Single
 Stloc V_3 VariableDefinition
@@ -35,19 +35,19 @@ Stloc V_18 VariableDefinition
 Ldloc V_18 VariableDefinition
 Brfalse IL_0120: ldloca V_0 Instruction
 Nop 
-Ldsfld System.Numerics.Matrix4x4 _ConsoleApp1.Unity::unity_ObjectToWorld FieldDefinition
+Ldsfld System.Numerics.Matrix4x4 Shader.Lib.Global::ObjectToWorld FieldReference
 Ldc_R4 0 Single
 Ldc_R4 0 Single
 Ldc_R4 0 Single
 Ldc_R4 1 Single
-Newobj System.Void GenMath.float4::.ctor(System.Single,System.Single,System.Single,System.Single) MethodReference
-Call GenMath.float4 _ConsoleApp1.math::mul(System.Numerics.Matrix4x4,GenMath.float4) MethodDefinition
-Call GenMath.float3 GenMath.float4::op_Implicit(GenMath.float4) MethodReference
+Newobj System.Void Shader.Vectors.float4::.ctor(System.Single,System.Single,System.Single,System.Single) MethodReference
+Call Shader.Vectors.float4 Shader.Lib.math::mul(System.Numerics.Matrix4x4,Shader.Vectors.float4) MethodReference
+Call Shader.Vectors.float3 Shader.Vectors.float4::op_Implicit(Shader.Vectors.float4) MethodReference
 Stloc V_19 VariableDefinition
 Ldloc V_19 VariableDefinition
-Ldsflda GenMath.float4 _ConsoleApp1.Unity::_WorldSpaceCameraPos FieldDefinition
-Ldfld GenMath.float3 GenMath.float4::xyz FieldReference
-Call System.Single _ConsoleApp1.math::distance(GenMath.float3,GenMath.float3) MethodDefinition
+Ldsflda Shader.Vectors.float4 Shader.Lib.Global::_WorldSpaceCameraPos FieldReference
+Ldfld Shader.Vectors.float3 Shader.Vectors.float4::xyz FieldReference
+Call System.Single Shader.Lib.math::distance(Shader.Vectors.float3,Shader.Vectors.float3) MethodReference
 Stloc V_20 VariableDefinition
 Ldloc V_20 VariableDefinition
 Ldarg  ParameterDefinition
@@ -61,40 +61,40 @@ Sub
 Div 
 Stloc V_3 VariableDefinition
 Ldloc V_3 VariableDefinition
-Call System.Single _ConsoleApp1.math::saturate(System.Single) MethodDefinition
+Call System.Single Shader.Lib.math::saturate(System.Single) MethodReference
 Stloc V_3 VariableDefinition
-Ldsfld System.Numerics.Matrix4x4 _ConsoleApp1.Unity::unity_ObjectToWorld FieldDefinition
+Ldsfld System.Numerics.Matrix4x4 Shader.Lib.Global::ObjectToWorld FieldReference
 Ldarg v ParameterDefinition
-Ldfld GenMath.float4 Shaders.BigShader/appdataGrass::uv FieldDefinition
-Ldfld GenMath.float3 GenMath.float4::xyz FieldReference
+Ldfld Shader.Vectors.float4 Shaders.BigShader/appdataGrass::uv FieldDefinition
+Ldfld Shader.Vectors.float3 Shader.Vectors.float4::xyz FieldReference
 Ldc_R4 1 Single
-Newobj System.Void GenMath.float4::.ctor(GenMath.float3,System.Single) MethodReference
-Call GenMath.float4 _ConsoleApp1.math::mul(System.Numerics.Matrix4x4,GenMath.float4) MethodDefinition
-Call GenMath.float3 GenMath.float4::op_Implicit(GenMath.float4) MethodReference
+Newobj System.Void Shader.Vectors.float4::.ctor(Shader.Vectors.float3,System.Single) MethodReference
+Call Shader.Vectors.float4 Shader.Lib.math::mul(System.Numerics.Matrix4x4,Shader.Vectors.float4) MethodReference
+Call Shader.Vectors.float3 Shader.Vectors.float4::op_Implicit(Shader.Vectors.float4) MethodReference
 Stloc V_21 VariableDefinition
 Ldarg v ParameterDefinition
-Ldfld GenMath.fixed3 Shaders.BigShader/appdataGrass::normal2 FieldDefinition
-Call GenMath.float3 _ConsoleApp1.Unity::UnityObjectToWorldNormal(GenMath.fixed3) MethodDefinition
+Ldfld Shader.Vectors.fixed3 Shaders.BigShader/appdataGrass::normal2 FieldDefinition
+Call Shader.Vectors.float3 Shader.Lib.Global::ObjectToWorldNormal(Shader.Vectors.fixed3) MethodReference
 Stloc V_22 VariableDefinition
 Ldloc V_1 VariableDefinition
 Ldloc V_21 VariableDefinition
 Ldloc V_3 VariableDefinition
-Call GenMath.float3 _ConsoleApp1.math::lerp(GenMath.float3,GenMath.float3,System.Single) MethodDefinition
+Call Shader.Vectors.float3 Shader.Lib.math::lerp(Shader.Vectors.float3,Shader.Vectors.float3,System.Single) MethodReference
 Stloc V_1 VariableDefinition
 Ldloc V_2 VariableDefinition
 Ldloc V_22 VariableDefinition
 Ldloc V_3 VariableDefinition
-Call GenMath.float3 _ConsoleApp1.math::lerp(GenMath.float3,GenMath.float3,System.Single) MethodDefinition
+Call Shader.Vectors.float3 Shader.Lib.math::lerp(Shader.Vectors.float3,Shader.Vectors.float3,System.Single) MethodReference
 Stloc V_2 VariableDefinition
 Nop 
 Ldloca V_0 VariableDefinition
 Ldloc V_2 VariableDefinition
-Call GenMath.fixed3 GenMath.float3::op_Implicit(GenMath.float3) MethodReference
-Stfld GenMath.fixed3 Shaders.BigShader/v2fGrass::normal FieldDefinition
+Call Shader.Vectors.fixed3 Shader.Vectors.float3::op_Implicit(Shader.Vectors.float3) MethodReference
+Stfld Shader.Vectors.fixed3 Shaders.BigShader/v2fGrass::normal FieldDefinition
 Ldc_R4 1 Single
 Ldarg v ParameterDefinition
-Ldfld GenMath.fixed4 Shaders.BigShader/appdataGrass::color FieldDefinition
-Ldfld System.Single GenMath.fixed4::a FieldReference
+Ldfld Shader.Vectors.fixed4 Shaders.BigShader/appdataGrass::color FieldDefinition
+Ldfld System.Single Shader.Vectors.fixed4::a FieldReference
 Sub 
 Stloc V_4 VariableDefinition
 Ldloc V_4 VariableDefinition
@@ -103,7 +103,7 @@ Ldc_R4 0,01 Single
 Ldc_R4 0,5 Single
 Ldarg  ParameterDefinition
 Ldfld System.Single Shaders.BigShader::_Wind FieldDefinition
-Call System.Single _ConsoleApp1.math::lerp(System.Single,System.Single,System.Single) MethodDefinition
+Call System.Single Shader.Lib.math::lerp(System.Single,System.Single,System.Single) MethodReference
 Stloc V_6 VariableDefinition
 Ldc_R4 3,3 Single
 Stloc V_7 VariableDefinition
@@ -121,31 +121,31 @@ Mul
 Stloc V_8 VariableDefinition
 Ldc_R4 0,5 Single
 Ldc_R4 0,75 Single
-Ldsflda GenMath.float4 _ConsoleApp1.Unity::_Time FieldDefinition
-Ldfld System.Single GenMath.float4::y FieldReference
+Ldsflda Shader.Vectors.float4 Shader.Lib.Global::_Time FieldReference
+Ldfld System.Single Shader.Vectors.float4::y FieldReference
 Mul 
-Call System.Single _ConsoleApp1.math::sin(System.Single) MethodDefinition
+Call System.Single Shader.Lib.math::sin(System.Single) MethodReference
 Add 
 Stloc V_10 VariableDefinition
 Ldc_R4 0,3 Single
 Ldc_R4 -0,15 Single
 Ldc_R4 0,31 Single
 Ldc_R4 0 Single
-Newobj System.Void GenMath.float4::.ctor(System.Single,System.Single,System.Single,System.Single) MethodReference
+Newobj System.Void Shader.Vectors.float4::.ctor(System.Single,System.Single,System.Single,System.Single) MethodReference
 Ldloc V_10 VariableDefinition
-Call GenMath.float4 GenMath.float4::op_Multiply(GenMath.float4,System.Single) MethodReference
+Call Shader.Vectors.float4 Shader.Vectors.float4::op_Multiply(Shader.Vectors.float4,System.Single) MethodReference
 Stloc V_11 VariableDefinition
 Ldloc V_10 VariableDefinition
 Ldc_R4 0,75 Single
 Sub 
-Call System.Single _ConsoleApp1.math::saturate(System.Single) MethodDefinition
+Call System.Single Shader.Lib.math::saturate(System.Single) MethodReference
 Ldc_R4 0,01 Single
 Mul 
 Stloc V_12 VariableDefinition
 Ldloc V_1 VariableDefinition
 Stloc V_13 VariableDefinition
 Ldc_I4 2 Int32
-Ldsfld System.Int32 _ConsoleApp1.Unity::UNITY_PI FieldDefinition
+Ldsfld System.Int32 Shader.Lib.Global::PI FieldReference
 Mul 
 Conv_R4 
 Ldloc V_7 VariableDefinition
@@ -153,13 +153,13 @@ Div
 Stloc V_14 VariableDefinition
 Ldloc V_14 VariableDefinition
 Ldloc V_13 VariableDefinition
-Ldfld System.Single GenMath.float3::x FieldReference
+Ldfld System.Single Shader.Vectors.float3::x FieldReference
 Ldloc V_8 VariableDefinition
-Ldsflda GenMath.float4 _ConsoleApp1.Unity::_Time FieldDefinition
-Ldfld System.Single GenMath.float4::y FieldReference
+Ldsflda Shader.Vectors.float4 Shader.Lib.Global::_Time FieldReference
+Ldfld System.Single Shader.Vectors.float4::y FieldReference
 Ldarg v ParameterDefinition
-Ldfld GenMath.float4 Shaders.BigShader/appdataGrass::uv FieldDefinition
-Ldfld System.Single GenMath.float4::w FieldReference
+Ldfld Shader.Vectors.float4 Shaders.BigShader/appdataGrass::uv FieldDefinition
+Ldfld System.Single Shader.Vectors.float4::w FieldReference
 Ldloc V_12 VariableDefinition
 Mul 
 Add 
@@ -170,10 +170,10 @@ Stloc V_15 VariableDefinition
 Ldloc V_15 VariableDefinition
 Ldloca V_16 VariableDefinition
 Ldloca V_17 VariableDefinition
-Call System.Void _ConsoleApp1.math::sincos(System.Single,System.Single&,System.Single&) MethodDefinition
+Call System.Void Shader.Lib.math::sincos(System.Single,System.Single&,System.Single&) MethodReference
 Nop 
 Ldloca V_13 VariableDefinition
-Ldflda System.Single GenMath.float3::x FieldReference
+Ldflda System.Single Shader.Vectors.float3::x FieldReference
 Dup 
 Ldind_R4 
 Ldloc V_9 VariableDefinition
@@ -184,7 +184,7 @@ Mul
 Add 
 Stind_R4 
 Ldloca V_13 VariableDefinition
-Ldflda System.Single GenMath.float3::y FieldReference
+Ldflda System.Single Shader.Vectors.float3::y FieldReference
 Dup 
 Ldind_R4 
 Ldloc V_9 VariableDefinition
@@ -196,30 +196,30 @@ Add
 Stind_R4 
 Ldloc V_13 VariableDefinition
 Ldloc V_11 VariableDefinition
-Ldfld GenMath.float3 GenMath.float4::xyz FieldReference
+Ldfld Shader.Vectors.float3 Shader.Vectors.float4::xyz FieldReference
 Ldloc V_4 VariableDefinition
-Call GenMath.float3 GenMath.float3::op_Multiply(GenMath.float3,System.Single) MethodReference
+Call Shader.Vectors.float3 Shader.Vectors.float3::op_Multiply(Shader.Vectors.float3,System.Single) MethodReference
 Ldc_R4 1,3 Single
-Call GenMath.float3 GenMath.float3::op_Multiply(GenMath.float3,System.Single) MethodReference
+Call Shader.Vectors.float3 Shader.Vectors.float3::op_Multiply(Shader.Vectors.float3,System.Single) MethodReference
 Ldc_R4 0,4 Single
-Call GenMath.float3 GenMath.float3::op_Division(GenMath.float3,System.Single) MethodReference
+Call Shader.Vectors.float3 Shader.Vectors.float3::op_Division(Shader.Vectors.float3,System.Single) MethodReference
 Ldloc V_6 VariableDefinition
-Call GenMath.float3 GenMath.float3::op_Multiply(GenMath.float3,System.Single) MethodReference
-Call GenMath.float3 GenMath.float3::op_Addition(GenMath.float3,GenMath.float3) MethodReference
+Call Shader.Vectors.float3 Shader.Vectors.float3::op_Multiply(Shader.Vectors.float3,System.Single) MethodReference
+Call Shader.Vectors.float3 Shader.Vectors.float3::op_Addition(Shader.Vectors.float3,Shader.Vectors.float3) MethodReference
 Stloc V_13 VariableDefinition
 Ldloc V_13 VariableDefinition
 Stloc V_1 VariableDefinition
 Ldloca V_0 VariableDefinition
 Ldloc V_1 VariableDefinition
-Stfld GenMath.float3 Shaders.BigShader/v2fGrass::worldPos FieldDefinition
+Stfld Shader.Vectors.float3 Shaders.BigShader/v2fGrass::worldPos FieldDefinition
 Ldloca V_0 VariableDefinition
-Ldsfld System.Numerics.Matrix4x4 _ConsoleApp1.Unity::UNITY_MATRIX_VP FieldDefinition
+Ldsfld System.Numerics.Matrix4x4 Shader.Lib.Global::MATRIX_VP FieldReference
 Ldloca V_1 VariableDefinition
-Call GenMath.float3 GenMath.float3::get_xyz() MethodReference
+Call Shader.Vectors.float3 Shader.Vectors.float3::get_xyz() MethodReference
 Ldc_R4 1 Single
-Newobj System.Void GenMath.float4::.ctor(GenMath.float3,System.Single) MethodReference
-Call GenMath.float4 _ConsoleApp1.math::mul(System.Numerics.Matrix4x4,GenMath.float4) MethodDefinition
-Stfld GenMath.float4 Shaders.BigShader/v2fGrass::vertex FieldDefinition
+Newobj System.Void Shader.Vectors.float4::.ctor(Shader.Vectors.float3,System.Single) MethodReference
+Call Shader.Vectors.float4 Shader.Lib.math::mul(System.Numerics.Matrix4x4,Shader.Vectors.float4) MethodReference
+Stfld Shader.Vectors.float4 Shaders.BigShader/v2fGrass::vertex FieldDefinition
 Ldarg  ParameterDefinition
 Ldfld Shaders.ShaderFeature Shaders.BigShader::_SMOOTH_FADE FieldDefinition
 Call System.Boolean Shaders.ShaderFeature::op_Implicit(Shaders.ShaderFeature) MethodDefinition
@@ -229,25 +229,25 @@ Brfalse IL_02ca: nop Instruction
 Nop 
 Ldloca V_0 VariableDefinition
 Ldarg v ParameterDefinition
-Ldfld GenMath.fixed4 Shaders.BigShader/appdataGrass::color FieldDefinition
+Ldfld Shader.Vectors.fixed4 Shaders.BigShader/appdataGrass::color FieldDefinition
 Ldarg v ParameterDefinition
-Ldfld GenMath.fixed4 Shaders.BigShader/appdataGrass::color2 FieldDefinition
+Ldfld Shader.Vectors.fixed4 Shaders.BigShader/appdataGrass::color2 FieldDefinition
 Ldloc V_3 VariableDefinition
-Call GenMath.fixed4 _ConsoleApp1.math::lerp(GenMath.fixed4,GenMath.fixed4,System.Single) MethodDefinition
-Stfld GenMath.fixed4 Shaders.BigShader/v2fGrass::color FieldDefinition
+Call Shader.Vectors.fixed4 Shader.Lib.math::lerp(Shader.Vectors.fixed4,Shader.Vectors.fixed4,System.Single) MethodReference
+Stfld Shader.Vectors.fixed4 Shaders.BigShader/v2fGrass::color FieldDefinition
 Nop 
 Br IL_02d9: ldloca V_0 Instruction
 Nop 
 Ldloca V_0 VariableDefinition
 Ldarg v ParameterDefinition
-Ldfld GenMath.fixed4 Shaders.BigShader/appdataGrass::color FieldDefinition
-Stfld GenMath.fixed4 Shaders.BigShader/v2fGrass::color FieldDefinition
+Ldfld Shader.Vectors.fixed4 Shaders.BigShader/appdataGrass::color FieldDefinition
+Stfld Shader.Vectors.fixed4 Shaders.BigShader/v2fGrass::color FieldDefinition
 Nop 
 Ldloca V_0 VariableDefinition
-Ldflda _ConsoleApp1.UNITY_FOG_COORDS Shaders.BigShader/v2fGrass::UNITY_FOG_COORDS FieldDefinition
+Ldflda _ConsoleApp1.FOG_COORDS Shaders.BigShader/v2fGrass::UNITY_FOG_COORDS FieldDefinition
 Ldloc V_0 VariableDefinition
-Ldfld GenMath.float4 Shaders.BigShader/v2fGrass::vertex FieldDefinition
-Call System.Void _ConsoleApp1.Unity::UNITY_TRANSFER_FOG(_ConsoleApp1.UNITY_FOG_COORDS&,GenMath.float4) MethodDefinition
+Ldfld Shader.Vectors.float4 Shaders.BigShader/v2fGrass::vertex FieldDefinition
+Call System.Void _ConsoleApp1.UGlobal::TRANSFER_FOG(_ConsoleApp1.FOG_COORDS&,Shader.Vectors.float4) MethodDefinition
 Nop 
 Ldloc V_0 VariableDefinition
 Stloc V_24 VariableDefinition

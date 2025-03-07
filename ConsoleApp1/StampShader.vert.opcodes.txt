@@ -1,26 +1,26 @@
 Nop 
 Ldloca V_0 VariableDefinition
-Ldsfld System.Numerics.Matrix4x4 _ConsoleApp1.Unity::unity_ObjectToWorld FieldDefinition
+Ldsfld System.Numerics.Matrix4x4 Shader.Lib.Global::ObjectToWorld FieldReference
 Ldarg IN ParameterDefinition
-Ldfld GenMath.float4 _ConsoleApp1.StampShader/appdata_t::vertex FieldDefinition
-Call GenMath.float4 _ConsoleApp1.math::mul(System.Numerics.Matrix4x4,GenMath.float4) MethodDefinition
-Call GenMath.float3 GenMath.float4::op_Implicit(GenMath.float4) MethodReference
-Stfld GenMath.float3 _ConsoleApp1.StampShader/v2f::worldPos FieldDefinition
+Ldfld Shader.Vectors.float4 _ConsoleApp1.StampShader/appdata_t::vertex FieldDefinition
+Call Shader.Vectors.float4 Shader.Lib.math::mul(System.Numerics.Matrix4x4,Shader.Vectors.float4) MethodReference
+Call Shader.Vectors.float3 Shader.Vectors.float4::op_Implicit(Shader.Vectors.float4) MethodReference
+Stfld Shader.Vectors.float3 _ConsoleApp1.StampShader/v2f::worldPos FieldDefinition
 Ldloca V_0 VariableDefinition
 Ldarg IN ParameterDefinition
-Ldfld GenMath.float4 _ConsoleApp1.StampShader/appdata_t::vertex FieldDefinition
-Call GenMath.float4 _ConsoleApp1.Unity::UnityObjectToClipPos(GenMath.float4) MethodDefinition
-Stfld GenMath.float4 _ConsoleApp1.StampShader/v2f::vertex FieldDefinition
+Ldfld Shader.Vectors.float4 _ConsoleApp1.StampShader/appdata_t::vertex FieldDefinition
+Call Shader.Vectors.float4 Shader.Lib.Global::ObjectToClipPos(Shader.Vectors.float4) MethodReference
+Stfld Shader.Vectors.float4 _ConsoleApp1.StampShader/v2f::vertex FieldDefinition
 Ldloca V_0 VariableDefinition
 Ldarg IN ParameterDefinition
-Ldfld GenMath.float2 _ConsoleApp1.StampShader/appdata_t::texcoord FieldDefinition
-Call GenMath.half2 GenMath.float2::op_Implicit(GenMath.float2) MethodReference
-Stfld GenMath.half2 _ConsoleApp1.StampShader/v2f::texcoord FieldDefinition
+Ldfld Shader.Vectors.float2 _ConsoleApp1.StampShader/appdata_t::texcoord FieldDefinition
+Call Shader.Vectors.half2 Shader.Vectors.float2::op_Implicit(Shader.Vectors.float2) MethodReference
+Stfld Shader.Vectors.half2 _ConsoleApp1.StampShader/v2f::texcoord FieldDefinition
 Ldloca V_0 VariableDefinition
 Ldarg IN ParameterDefinition
-Ldfld GenMath.float4 _ConsoleApp1.StampShader/appdata_t::color FieldDefinition
-Call GenMath.fixed4 GenMath.float4::op_Implicit(GenMath.float4) MethodReference
-Stfld GenMath.fixed4 _ConsoleApp1.StampShader/v2f::color FieldDefinition
+Ldfld Shader.Vectors.float4 _ConsoleApp1.StampShader/appdata_t::color FieldDefinition
+Call Shader.Vectors.fixed4 Shader.Vectors.float4::op_Implicit(Shader.Vectors.float4) MethodReference
+Stfld Shader.Vectors.fixed4 _ConsoleApp1.StampShader/v2f::color FieldDefinition
 Ldloc V_0 VariableDefinition
 Stloc V_1 VariableDefinition
 Br IL_0057: ldloc V_1 Instruction

@@ -1,24 +1,24 @@
 
 uniform ShaderFeature _UNITY_LIGHTING;
-uniform vec4 _ColorLight;
-uniform vec4 _ColorShadow;
+uniform fixed4 _ColorLight;
+uniform fixed4 _ColorShadow;
 uniform float _Softness;
-uniform vec4[] Positions;
+uniform fixed4[] Positions;
 
-varying vec4 color;
-varying vec3 normal;
+varying fixed4 color;
+varying fixed3 normal;
 varying vec3 worldPos;
-varying UNITY_VERTEX_INPUT_INSTANCE_ID UNITY_VERTEX_INPUT_INSTANCE_ID;
-varying UNITY_VERTEX_OUTPUT_STEREO UNITY_VERTEX_OUTPUT_STEREO;
-varying UNITY_FOG_COORDS UNITY_FOG_COORDS;
+varying VERTEX_INPUT_INSTANCE_ID UNITY_VERTEX_INPUT_INSTANCE_ID;
+varying VERTEX_OUTPUT_STEREO UNITY_VERTEX_OUTPUT_STEREO;
+varying FOG_COORDS UNITY_FOG_COORDS;
 
 main(){
-vec4 tmp26;
-vec4 result27;
+fixed4 tmp26;
+fixed4 result27;
 int tmp30;
 int tmp38;
-vec3 sss1;
-float sss2;
+vec3 sss3;
+float sss4;
 	bool v = 1;
 	int a = 1;
 	int b = 2;
@@ -34,8 +34,8 @@ float sss2;
 		}
 		if(a > 10) break;
 	}
-	UNITY_SETUP_INSTANCE_ID(UNITY_VERTEX_INPUT_INSTANCE_ID);
-	UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(UNITY_VERTEX_OUTPUT_STEREO);
+	UGlobal.SETUP_INSTANCE_ID(UNITY_VERTEX_INPUT_INSTANCE_ID);
+	UGlobal.SETUP_STEREO_EYE_INDEX_POST_VERTEX(UNITY_VERTEX_OUTPUT_STEREO);
 	float sum = 0.0;
 	tmp30 = 0;
 	while(true){
@@ -70,17 +70,17 @@ float sss2;
 	}
 	sum2 = sum2 + 5678.0;
 	if (facing ) {
-		sss1 = _WorldSpaceLightPos0.xyz * 2.0;
+		sss3 = _WorldSpaceLightPos0.xyz * 2.0;
 	} else {
-		sss1 = worldPos.xyz - _WorldSpaceCameraPos.xyz;
+		sss3 = worldPos.xyz - _WorldSpaceCameraPos.xyz;
 	}
-	vec3 dir = sss1;
+	vec3 dir = sss3;
 	if (facing ) {
-		sss2 = 1.0;
+		sss4 = 1.0;
 	} else {
-		sss2 = -1.0;
+		sss4 = -1.0;
 	}
-	vec3 norm = normalize(sss2 * normal);
+	vec3 norm = normalize(sss4 * normal);
 	vec3 lightDir = -normalize(_WorldSpaceLightPos0.xyz);
 	vec3 viewDir = normalize(worldPos.xyz - _WorldSpaceCameraPos.xyz);
 	float flare = saturate(dot(viewDir, -lightDir));
@@ -99,7 +99,7 @@ float sss2;
 	} else {
 		colorLight = _LightColor0;
 		colorShadow = 1.0;
-		colorShadow.xyz = ShadeSH9(float4(norm, 1.0));
+		colorShadow.xyz = UGlobal.ShadeSH9(float4(norm, 1.0));
 	}
 	vec4 lcolor = colorShadow + colorLight;
 	vec4 sunColor = mix(colorShadow, lcolor, sun);
@@ -113,7 +113,7 @@ float sss2;
 	vec4 throughColor = ((1.3 * color) * colorLight) + (colorLight * 0.3);
 	vec4 result = mix(l21_color, throughColor, through);
 	result = saturate(result);
-	UNITY_APPLY_FOG(UNITY_FOG_COORDS, result);
+	UGlobal.APPLY_FOG(UNITY_FOG_COORDS, result);
 	result27 = result;
 	gl_FragColor = result27; return;
 

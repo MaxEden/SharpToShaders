@@ -1,0 +1,76 @@
+struct vertex_info
+{
+float3 vertex : POSITION;
+float4 uv : TEXCOORD0;
+fixed3 normal : NORMAL;
+fixed3 normal2 : TANGENT;
+fixed4 color : COLOR;
+fixed4 color2 : TEXCOORD1;
+VERTEX_INPUT_INSTANCE_ID UNITY_VERTEX_INPUT_INSTANCE_ID : ;
+}
+
+struct vertex_to_pixel
+{
+float4 vertex : POSITION;
+fixed4 color : COLOR;
+fixed3 normal : NORMAL;
+float3 worldPos : POSITION1;
+VERTEX_INPUT_INSTANCE_ID UNITY_VERTEX_INPUT_INSTANCE_ID : ;
+VERTEX_OUTPUT_STEREO UNITY_VERTEX_OUTPUT_STEREO : ;
+FOG_COORDS UNITY_FOG_COORDS : ;
+}
+
+ShaderFeature _SMOOTH_FADE;
+float _Wind;
+float _DistMin;
+float _DistMax;
+
+vertex_to_pixel main(in vertex_info IN)
+{
+vertex_to_pixel OUT;
+	UGlobal.SETUP_INSTANCE_ID(IN.UNITY_VERTEX_INPUT_INSTANCE_ID);
+	UGlobal.TRANSFER_INSTANCE_ID(IN.UNITY_VERTEX_INPUT_INSTANCE_ID, OUT.UNITY_VERTEX_INPUT_INSTANCE_ID);
+	UGlobal.INITIALIZE_VERTEX_OUTPUT_STEREO(OUT.UNITY_VERTEX_OUTPUT_STEREO);
+	float3 worldPos = mul(ObjectToWorld, float4(IN.vertex.xyz, 1.0));
+	float3 normal = ObjectToWorldNormal(IN.normal);
+	float t = 0.0;
+	if (_SMOOTH_FADE) {
+		t = (distance(mul(ObjectToWorld, float4(0.0, 0.0, 0.0, 1.0)), _WorldSpaceCameraPos.xyz) - _DistMin) / (_DistMax - _DistMin);
+		t = saturate(t);
+		worldPos = mix(worldPos, mul(ObjectToWorld, float4(IN.uv.xyz, 1.0)), t);
+		normal = mix(normal, ObjectToWorldNormal(IN.normal2), t);
+	}
+	OUT.normal = normal;
+	float intensOr = 1.0 - IN.color.a;
+	float intens = intensOr;
+	float val = mix(0.0, 0.5, _Wind);
+	float _Wavelength = 3.3;
+	float _Speed = 15.0;
+	float _Amplitude = 0.2;
+	intens = intens * val;
+	_Speed = _Speed * val;
+	float windForce = 0.5 + sin(0.8 * _Time.y);
+	float4 wave = float4(0.3, -0.2, 0.3, 0.0) * windForce;
+	float tShift = saturate(windForce - 0.8) * 0.0;
+	float3 p = worldPos;
+	float k = (2 * PI) / _Wavelength;
+	float f = k * (p.x - (_Speed * (_Time.y + (IN.uv.w * tShift))));
+	sincos(f, sr, cr);
+	p.x = p.x + ((_Amplitude * cr) * intens);
+	p.y = p.y + ((_Amplitude * sr) * intens);
+	p = p + ((((wave.xyz * intensOr) * 1.3) / 0.4) * val);
+	worldPos = p;
+	OUT.worldPos = worldPos;
+	OUT.vertex = mul(MATRIX_VP, float4(worldPos.xyz, 1.0));
+	if (!_SMOOTH_FADE ) {
+		OUT.color = IN.color;
+	} else {
+		OUT.color = mix(IN.color, IN.color2, t);
+	}
+	UGlobal.TRANSFER_FOG(OUT.UNITY_FOG_COORDS, OUT.vertex);
+	return OUT;
+
+}
+/*___unresolved_____
+
+_____________*/

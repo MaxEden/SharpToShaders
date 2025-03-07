@@ -1,0 +1,35 @@
+struct input_from_vertex
+{
+fixed4 color : COLOR;
+half2 texcoord : TEXCOORD0;
+float3 worldPos : TEXCOORD1;
+}
+
+sampler2D IN._MainTex;
+sampler2D IN._PatternTex;
+fixed4 IN._ScalePattern;
+float IN._AlphaAdd;
+
+float4 main(in input_from_vertex IN)
+{
+	float2 uv = IN.worldPos.xy * IN._ScalePattern.xy;
+	fixed4 pattern = tex2D(IN._PatternTex, uv);
+	fixed4 c = tex2D(IN._MainTex, IN.texcoord);
+	float l = Luminance(c.rgb);
+	l = l - IN._ScalePattern.z;
+	l = l * IN._ScalePattern.w;
+	c.rgb = saturate(l) + IN.color;
+	c.a = c.a * ((pattern.a + IN._AlphaAdd) + (IN.color.a - 1.0));
+	c = saturate(c);
+	c.rgb = c.rgb * c.a;
+	c.rgb = c.rgb + (1.0 - c.a);
+	c = saturate(c);
+	return c;
+
+}
+
+float4 main(in input_from_vertex IN)
+{
+/*___unresolved_____
+
+_____________*/

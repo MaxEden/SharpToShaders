@@ -1,0 +1,129 @@
+struct input_from_vertex
+{
+fixed4 color : COLOR;
+fixed3 normal : NORMAL;
+float3 worldPos : POSITION1;
+VERTEX_INPUT_INSTANCE_ID UNITY_VERTEX_INPUT_INSTANCE_ID : ;
+VERTEX_OUTPUT_STEREO UNITY_VERTEX_OUTPUT_STEREO : ;
+FOG_COORDS UNITY_FOG_COORDS : ;
+}
+
+ShaderFeature IN._UNITY_LIGHTING;
+fixed4 IN._ColorLight;
+fixed4 IN._ColorShadow;
+float IN._Softness;
+fixed4[] IN.Positions;
+
+float4 main(in input_from_vertex IN)
+{
+fixed4 tmp26;
+fixed4 result27;
+int tmp30;
+int tmp38;
+float3 sss1;
+float sss2;
+	bool v = 1;
+	int a = 1;
+	int b = 2;
+	while(true){
+		if(!v) break;
+		if (a > b) {
+			a = b;
+			if (b > 0) {
+				tmp26 = new fixed4();
+				result27 = tmp26;
+				return result27;
+			}
+		}
+		if(a > 10) break;
+	}
+	UGlobal.SETUP_INSTANCE_ID(IN.UNITY_VERTEX_INPUT_INSTANCE_ID);
+	UGlobal.SETUP_STEREO_EYE_INDEX_POST_VERTEX(IN.UNITY_VERTEX_OUTPUT_STEREO);
+	float sum = 0.0;
+	tmp30 = 0;
+	while(true){
+		if(!(tmp30 < 10)) break;
+		sum = sum + IN.Positions[tmp30].x;
+		tmp30 = tmp30 + 1;
+	}
+	sum = sum + 12345.0;
+	float sum2 = 0.0;
+	int k = 0;
+	while(true){
+		if(!(k < 10)) break;
+		k = k / 2;
+		if(k + 1 > 15) break;
+		sum2 = sum2 + IN.Positions[k].x;
+		k = k + 1;
+		if (facing) {
+			if (sum > 15.0) {
+				tmp38 = 0;
+				while(true){
+					if(!(tmp38 < 13)) break;
+					sum = sum + (tmp38 * 2);
+					tmp38 = tmp38 + 1;
+				}
+			}
+			if (sum2 < sum) {
+				tmp26 = new fixed4();
+				result27 = tmp26;
+				return result27;
+			}
+		}
+	}
+	sum2 = sum2 + 5678.0;
+	if (facing ) {
+		sss1 = _WorldSpaceLightPos0.xyz * 2.0;
+	} else {
+		sss1 = IN.worldPos.xyz - _WorldSpaceCameraPos.xyz;
+	}
+	float3 dir = sss1;
+	if (facing ) {
+		sss2 = 1.0;
+	} else {
+		sss2 = -1.0;
+	}
+	float3 norm = normalize(sss2 * IN.normal);
+	float3 lightDir = -normalize(_WorldSpaceLightPos0.xyz);
+	float3 viewDir = normalize(IN.worldPos.xyz - _WorldSpaceCameraPos.xyz);
+	float flare = saturate(dot(viewDir, -lightDir));
+	flare = (flare * flare) * flare;
+	float transl = saturate(1.5 * (1.0 - IN.color.a));
+	float fnorm = saturate(dot(norm, lightDir) - 0.5);
+	float sun = dot(norm, -lightDir);
+	float sunL = 0.5 + (0.5 * sun);
+	sun = saturate(sun);
+	sun = mix(sun, sunL, IN._Softness);
+	coeff = float3(1.0, 0.8, 0.0)
+	float through = saturate((coeff.x * flare) + (coeff.y * fnorm)) * transl;
+	if (!IN._UNITY_LIGHTING ) {
+		float4 colorLight = IN._ColorLight;
+		float4 colorShadow = IN._ColorShadow;
+	} else {
+		colorLight = _LightColor0;
+		colorShadow = 1.0;
+		colorShadow.xyz = UGlobal.ShadeSH9(float4(norm, 1.0));
+	}
+	float4 lcolor = colorShadow + colorLight;
+	float4 sunColor = mix(colorShadow, lcolor, sun);
+	if (IN._UNITY_LIGHTING) {
+		sunColor = saturate(sunColor);
+	}
+	float4 color = IN.color * sunColor;
+	if (IN._UNITY_LIGHTING) {
+		color = color + (0.1 * max(0.0, sunColor - 1.0));
+	}
+	float4 throughColor = ((1.3 * IN.color) * colorLight) + (colorLight * 0.3);
+	float4 result = mix(color, throughColor, through);
+	result = saturate(result);
+	UGlobal.APPLY_FOG(IN.UNITY_FOG_COORDS, result);
+	result27 = result;
+	return result27;
+
+}
+
+float4 main(in input_from_vertex IN)
+{
+/*___unresolved_____
+
+_____________*/

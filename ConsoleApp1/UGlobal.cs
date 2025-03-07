@@ -20,22 +20,10 @@ namespace _ConsoleApp1
 
     }
 
-    internal class Unity
-    {
-        internal static float4 _WorldSpaceCameraPos;
-        internal static int PI;
-        internal static float4 _Time;
-        internal static Matrix4x4 MATRIX_VP;
-        internal static float4 _WorldSpaceLightPos0;
-        internal static float4 _LightColor0;
-        internal static Matrix4x4 ObjectToWorld;
+    internal class UGlobal
+    {         
 
         internal static float3 ShadeSH9(float4 float4)
-        {
-            throw new NotImplementedException();
-        }
-
-        internal static float3 ObjectToWorldNormal(fixed3 normal)
         {
             throw new NotImplementedException();
         }
@@ -65,21 +53,6 @@ namespace _ConsoleApp1
         }
 
         internal static void TRANSFER_INSTANCE_ID(ref VERTEX_INPUT_INSTANCE_ID uNITY_VERTEX_INPUT_INSTANCE_ID1, ref VERTEX_INPUT_INSTANCE_ID uNITY_VERTEX_INPUT_INSTANCE_ID2)
-        {
-            throw new NotImplementedException();
-        }
-
-        public static float4 ObjectToClipPos(float4 inVertex)
-        {
-            throw new NotImplementedException();
-        }
-
-        public static fixed4 tex2D(sampler2D mainTex, float2 texcoord)
-        {
-            throw new NotImplementedException();
-        }
-
-        public static float Luminance(float3 rgb)
         {
             throw new NotImplementedException();
         }

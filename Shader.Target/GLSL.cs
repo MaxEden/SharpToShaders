@@ -2,6 +2,7 @@
 using Mono.Cecil;
 using System.Text;
 using static Compiler.ShaderBuilder;
+using Lemon.Tools;
 
 namespace Shader.BuildTarget
 {
@@ -18,25 +19,25 @@ namespace Shader.BuildTarget
             {"float3", "vec3"},
             {"float4", "vec4"},
 
-            {"fixed2", "vec2"},
-            {"fixed3", "vec3"},
-            {"fixed4", "vec4"},
+            //{"fixed2", "vec2"},
+            //{"fixed3", "vec3"},
+            //{"fixed4", "vec4"},
         };
 
         private static Dictionary<string, string> _methodMap = new()
         {
             { "tex2D", "texture2D" }
         };
-                public Context Context { get; set; }
+        public Context Context { get; set; }
         public bool MapReturn(StackItem popped, out string text)
         {
-            if (Context.ProgramType == ShaderBuilder.ProgramType.Vertex)
+            if (Context.Builder.Program == ShaderBuilder.ProgramType.Vertex)
             {
                 text = $"return;//gl_Position is set";
                 return true;
             }
 
-            if (Context.ProgramType == ShaderBuilder.ProgramType.Fragment)
+            if (Context.Builder.Program == ShaderBuilder.ProgramType.Fragment)
             {
                 text = $"gl_FragColor = {popped}; return;";
                 return true;
@@ -46,7 +47,7 @@ namespace Shader.BuildTarget
             return false;
         }
         public bool MapField(FieldReference fieldRef, out string text)
-        {          
+        {
             text = default;
             return false;
         }
@@ -85,7 +86,7 @@ namespace Shader.BuildTarget
                 return true;
             }
 
-            if (methodRef.DeclaringType.Name == "Unity")
+            if (methodRef.DeclaringType.Name == "Global")
             {
                 if (_methodMap.TryGetValue(methodRef.Name, out var met))
                 {
@@ -106,7 +107,7 @@ namespace Shader.BuildTarget
             return false;
         }
 
-        public void WriteHeader(StringBuilder sb)
+        public void WriteOut(StringBuilder sb)
         {
             foreach (var field in Context.Builder.Varyings.Values.Where(p => p.IsUsed && !p.BuiltIn && p.Type == VarType.Attribute))
             {
@@ -126,17 +127,20 @@ namespace Shader.BuildTarget
             sb.AppendLine();
             sb.AppendLine($"main(){{");
 
-            for (int i = 0; i < usedLocals.Length; i++)
+            foreach (var local in Context.Builder.Locals)
             {
-                 sb.AppendLine(
-                    $"{Context.Builder.MapTypeName(usedLocals[i].definition.VariableType)} {usedLocals[i]};"
+                if (local.canBeOmitted) continue;
+                if (local.canBeRef) continue;
+                if (local.canInline) continue;
+                sb.AppendLine(
+                    $"{Context.Builder.MapTypeName(local.definition.VariableType)} {local};"
                 );
             }
 
-            foreach (var stack in usedNamedLocals)
+            foreach (var named in Context.Builder.NamedStackLocals)
             {
                 sb.AppendLine(
-                    $"{stack.expectedType} {stack.name};"
+                    $"{named.expectedType} {named.name};"
                 );
             }
 
@@ -145,9 +149,69 @@ namespace Shader.BuildTarget
             sb.AppendLine("}");
         }
 
-        public void WriteFooter(StringBuilder sb)
+        public void AddVarying(ProgramType programType, FieldDefinition field, VarType varType, InputType input)
         {
-            sb.AppendLine("}");
+            if (programType == ProgramType.Vertex)
+            {
+                if (input == InputType.In)
+                {
+                    Context.Builder.Varyings.Add(field,
+                    new Var()
+                    {
+                        Name = field.Name,
+                        FieldType = field.FieldType,
+                        Type = varType,
+                        InputType = input
+                    });
+                }
+                else if (input == InputType.Out)
+                {
+                    if (field.HasAttribute("POSITIONAttribute"))
+                    {
+                        Context.Builder.Varyings.Add(field,
+                            new Var()
+                            {
+                                Name = "gl_Position",
+                                BuiltIn = true,
+                                FieldType = field.FieldType,
+                                Type = VarType.Attribute,
+                                InputType = input
+                            });
+                    }
+                    else
+                    {
+                        Context.Builder.Varyings.Add(field,
+                            new Var()
+                            {
+                                Name = field.Name,
+                                FieldType = field.FieldType,
+                                Type = varType,
+                                InputType = input
+                            });
+                    }
+                }
+            }
+            else if(programType == ProgramType.Fragment)
+            {
+                if(input == InputType.In)
+                {
+                    if (field.HasAttribute("POSITIONAttribute"))
+                    {
+
+                    }
+                    else
+                    {
+                        Context.Builder.Varyings.Add(field,
+                            new Var()
+                            {
+                                Name = field.Name,
+                                FieldType = field.FieldType,
+                                Type = varType,
+                                InputType = input
+                            });
+                    }
+                }
+            }
         }
     }
 }
