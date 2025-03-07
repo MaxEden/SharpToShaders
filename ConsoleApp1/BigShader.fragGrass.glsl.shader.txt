@@ -1,3 +1,9 @@
+attribute fixed4 color;
+attribute fixed3 normal;
+attribute vec3 worldPos;
+attribute VERTEX_INPUT_INSTANCE_ID UNITY_VERTEX_INPUT_INSTANCE_ID;
+attribute VERTEX_OUTPUT_STEREO UNITY_VERTEX_OUTPUT_STEREO;
+attribute FOG_COORDS UNITY_FOG_COORDS;
 
 uniform ShaderFeature _UNITY_LIGHTING;
 uniform fixed4 _ColorLight;
@@ -5,34 +11,28 @@ uniform fixed4 _ColorShadow;
 uniform float _Softness;
 uniform fixed4[] Positions;
 
-varying fixed4 color;
-varying fixed3 normal;
-varying vec3 worldPos;
-varying VERTEX_INPUT_INSTANCE_ID UNITY_VERTEX_INPUT_INSTANCE_ID;
-varying VERTEX_OUTPUT_STEREO UNITY_VERTEX_OUTPUT_STEREO;
-varying FOG_COORDS UNITY_FOG_COORDS;
 
 main(){
 fixed4 tmp26;
 fixed4 result27;
 int tmp30;
 int tmp38;
-vec3 sss3;
-float sss4;
+vec3 sss1;
+float sss2;
 	bool v = 1;
-	int a = 1;
-	int b = 2;
+	int l1_a = 1;
+	int l2_b = 2;
 	while(true){
 		if(!v) break;
-		if (a > b) {
-			a = b;
-			if (b > 0) {
+		if (l1_a > l2_b) {
+			l1_a = l2_b;
+			if (l2_b > 0) {
 				tmp26 = new fixed4();
 				result27 = tmp26;
-				gl_FragColor = result27; return;
+				return;//gl_Position is set
 			}
 		}
-		if(a > 10) break;
+		if(l1_a > 10) break;
 	}
 	UGlobal.SETUP_INSTANCE_ID(UNITY_VERTEX_INPUT_INSTANCE_ID);
 	UGlobal.SETUP_STEREO_EYE_INDEX_POST_VERTEX(UNITY_VERTEX_OUTPUT_STEREO);
@@ -64,23 +64,23 @@ float sss4;
 			if (sum2 < sum) {
 				tmp26 = new fixed4();
 				result27 = tmp26;
-				gl_FragColor = result27; return;
+				return;//gl_Position is set
 			}
 		}
 	}
 	sum2 = sum2 + 5678.0;
 	if (facing ) {
-		sss3 = _WorldSpaceLightPos0.xyz * 2.0;
+		sss1 = _WorldSpaceLightPos0.xyz * 2.0;
 	} else {
-		sss3 = worldPos.xyz - _WorldSpaceCameraPos.xyz;
+		sss1 = worldPos.xyz - _WorldSpaceCameraPos.xyz;
 	}
-	vec3 dir = sss3;
+	vec3 dir = sss1;
 	if (facing ) {
-		sss4 = 1.0;
+		sss2 = 1.0;
 	} else {
-		sss4 = -1.0;
+		sss2 = -1.0;
 	}
-	vec3 norm = normalize(sss4 * normal);
+	vec3 norm = normalize(sss2 * normal);
 	vec3 lightDir = -normalize(_WorldSpaceLightPos0.xyz);
 	vec3 viewDir = normalize(worldPos.xyz - _WorldSpaceCameraPos.xyz);
 	float flare = saturate(dot(viewDir, -lightDir));
@@ -115,9 +115,9 @@ float sss4;
 	result = saturate(result);
 	UGlobal.APPLY_FOG(UNITY_FOG_COORDS, result);
 	result27 = result;
-	gl_FragColor = result27; return;
-
-}
+	return;//gl_Position is set
 /*___unresolved_____
 
 _____________*/
+
+}

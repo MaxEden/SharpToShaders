@@ -69,8 +69,8 @@ vertex_to_pixel OUT;
 	}
 	UGlobal.TRANSFER_FOG(OUT.UNITY_FOG_COORDS, OUT.vertex);
 	return OUT;
-
-}
 /*___unresolved_____
 
 _____________*/
+
+}

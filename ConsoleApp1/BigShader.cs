@@ -14,7 +14,7 @@ namespace Shaders
     }
 
     [AssumeUniformScaling]
-    internal class BigShader : IShader
+    internal class BigShader 
     {
         //#pragma multi_compile_fog
         //#pragma multi_compile_instancing
@@ -28,10 +28,10 @@ namespace Shaders
         {
             [POSITION] public float3 vertex;
             [TEXCOORD0] public float4 uv;
-            [NORMAL] public fixed3 normal;
-            [TANGENT] public fixed3 normal2;
-            [COLOR] public fixed4 color;
-            [TEXCOORD1] public fixed4 color2;
+            [NORMAL] public float3 normal;
+            [TANGENT] public float3 normal2;
+            [COLOR] public float4 color;
+            [TEXCOORD1] public float4 color2;
 
             public VERTEX_INPUT_INSTANCE_ID UNITY_VERTEX_INPUT_INSTANCE_ID;
         };
@@ -39,8 +39,8 @@ namespace Shaders
         struct v2fGrass
         {
             [POSITION] public float4 vertex;
-            [COLOR] public fixed4 color;
-            [NORMAL] public fixed3 normal;
+            [COLOR] public float4 color;
+            [NORMAL] public float3 normal;
             [POSITION1] public float3 worldPos;
 
             public VERTEX_INPUT_INSTANCE_ID UNITY_VERTEX_INPUT_INSTANCE_ID;
@@ -48,15 +48,15 @@ namespace Shaders
             public FOG_COORDS UNITY_FOG_COORDS;
         };
 
-        fixed4 _ColorLight;
-        fixed4 _ColorShadow;
+        float4 _ColorLight;
+        float4 _ColorShadow;
         float _Wind;
         float _Softness;
         float _DistMin;
         float _DistMax;
-        fixed4 _DebugColor;
+        float4 _DebugColor;
 
-        private fixed4[] Positions;
+        private float4[] Positions;
         private string vertName => nameof(vertGrass);
         v2fGrass vertGrass(appdataGrass v)
         {
@@ -145,7 +145,7 @@ namespace Shaders
         }
 
         [SV_Target]
-        fixed4 fragGrass(v2fGrass i, [SV_IsFrontFace] bool facing)
+        float4 fragGrass(v2fGrass i, [SV_IsFrontFace] bool facing)
         {
 
             bool v = true;

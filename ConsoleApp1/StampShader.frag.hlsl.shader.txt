@@ -1,35 +1,40 @@
-struct input_from_vertex
+struct vertex_info
 {
-fixed4 color : COLOR;
-half2 texcoord : TEXCOORD0;
+float4 color : COLOR;
+float2 texcoord : TEXCOORD0;
 float3 worldPos : TEXCOORD1;
 }
 
-sampler2D IN._MainTex;
-sampler2D IN._PatternTex;
-fixed4 IN._ScalePattern;
-float IN._AlphaAdd;
-
-float4 main(in input_from_vertex IN)
+struct vertex_to_pixel
 {
-	float2 uv = IN.worldPos.xy * IN._ScalePattern.xy;
-	fixed4 pattern = tex2D(IN._PatternTex, uv);
-	fixed4 c = tex2D(IN._MainTex, IN.texcoord);
-	float l = Luminance(c.rgb);
-	l = l - IN._ScalePattern.z;
-	l = l * IN._ScalePattern.w;
-	c.rgb = saturate(l) + IN.color;
-	c.a = c.a * ((pattern.a + IN._AlphaAdd) + (IN.color.a - 1.0));
-	c = saturate(c);
-	c.rgb = c.rgb * c.a;
-	c.rgb = c.rgb + (1.0 - c.a);
-	c = saturate(c);
-	return c;
-
 }
 
-float4 main(in input_from_vertex IN)
-{
-/*___unresolved_____
+sampler2D _MainTex;
+sampler2D _PatternTex;
+float4 _ScalePattern;
+float _AlphaAdd;
 
-_____________*/
+vertex_to_pixel main(in vertex_info IN)
+{
+vertex_to_pixel OUT;
+	float2 uv = IN.worldPos.xy * _ScalePattern.xy;
+	float4 pattern = tex2D(_PatternTex, uv);
+	float4 c = tex2D(_MainTex, IN.texcoord);
+	float l = Luminance(c.rgb);
+	l = luminance(c);
+	l = l - _ScalePattern.z;
+	l = l * _ScalePattern.w;
+	c.rgb = saturate(l) + IN.color;
+	c.a = c.a * ((pattern.a + _AlphaAdd) + (IN.color.a - 1));
+	c = saturate(c);
+	c.rgb = c.rgb * c.a;
+	c.rgb = c.rgb + (1 - c.a);
+	c = saturate(c);
+	return OUT;
+
+}
+float luminance(float4 color)
+{
+	return 0.333 * ((color.r + color.g) + color.b);
+
+}

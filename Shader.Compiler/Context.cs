@@ -6,6 +6,6 @@ namespace Shader.BuildTarget
     {
         //public ShaderBuilder.ProgramType ProgramType;
 
-        public ShaderBuilder Builder { get; internal set; }
+        public MethodBuilder Builder { get; internal set; }
     }
 }

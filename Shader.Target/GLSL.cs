@@ -1,7 +1,6 @@
 ﻿using Compiler;
 using Mono.Cecil;
 using System.Text;
-using static Compiler.ShaderBuilder;
 using Lemon.Tools;
 
 namespace Shader.BuildTarget
@@ -10,6 +9,7 @@ namespace Shader.BuildTarget
     {
         static Dictionary<string, string> _typeMap = new()
         {
+            {"Void","void"},
             {"Single", "float" },
             {"Double", "double" },
             {"Boolean", "bool" },
@@ -147,6 +147,15 @@ namespace Shader.BuildTarget
             sb.AppendLine(Context.Builder.Body.ToString());
 
             sb.AppendLine("}");
+
+            if(Context.Builder.SubMethods!=null)
+            foreach (var meth in Context.Builder.SubMethods)
+            {
+                    sb.AppendLine(meth.Value.Header);
+                    sb.AppendLine("{");
+                    sb.AppendLine(meth.Value.Body.ToString());
+                    sb.AppendLine("}");
+            }
         }
 
         public void AddVarying(ProgramType programType, FieldDefinition field, VarType varType, InputType input)

@@ -3,8 +3,8 @@ attribute vec4 color;
 attribute vec2 texcoord;
 
 
-varying fixed4 color;
-varying half2 texcoord;
+varying vec4 color;
+varying vec2 texcoord;
 varying vec3 worldPos;
 
 main(){
@@ -15,6 +15,3 @@ main(){
 	return;//gl_Position is set
 
 }
-/*___unresolved_____
-
-_____________*/

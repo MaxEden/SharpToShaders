@@ -1,4 +1,4 @@
-struct input_from_vertex
+struct vertex_info
 {
 fixed4 color : COLOR;
 fixed3 normal : NORMAL;
@@ -8,14 +8,19 @@ VERTEX_OUTPUT_STEREO UNITY_VERTEX_OUTPUT_STEREO : ;
 FOG_COORDS UNITY_FOG_COORDS : ;
 }
 
-ShaderFeature IN._UNITY_LIGHTING;
-fixed4 IN._ColorLight;
-fixed4 IN._ColorShadow;
-float IN._Softness;
-fixed4[] IN.Positions;
-
-float4 main(in input_from_vertex IN)
+struct vertex_to_pixel
 {
+}
+
+ShaderFeature _UNITY_LIGHTING;
+fixed4 _ColorLight;
+fixed4 _ColorShadow;
+float _Softness;
+fixed4[] Positions;
+
+vertex_to_pixel main(in vertex_info IN)
+{
+vertex_to_pixel OUT;
 fixed4 tmp26;
 fixed4 result27;
 int tmp30;
@@ -32,7 +37,7 @@ float sss2;
 			if (b > 0) {
 				tmp26 = new fixed4();
 				result27 = tmp26;
-				return result27;
+				return OUT;
 			}
 		}
 		if(a > 10) break;
@@ -43,7 +48,7 @@ float sss2;
 	tmp30 = 0;
 	while(true){
 		if(!(tmp30 < 10)) break;
-		sum = sum + IN.Positions[tmp30].x;
+		sum = sum + Positions[tmp30].x;
 		tmp30 = tmp30 + 1;
 	}
 	sum = sum + 12345.0;
@@ -53,7 +58,7 @@ float sss2;
 		if(!(k < 10)) break;
 		k = k / 2;
 		if(k + 1 > 15) break;
-		sum2 = sum2 + IN.Positions[k].x;
+		sum2 = sum2 + Positions[k].x;
 		k = k + 1;
 		if (facing) {
 			if (sum > 15.0) {
@@ -67,7 +72,7 @@ float sss2;
 			if (sum2 < sum) {
 				tmp26 = new fixed4();
 				result27 = tmp26;
-				return result27;
+				return OUT;
 			}
 		}
 	}
@@ -93,12 +98,12 @@ float sss2;
 	float sun = dot(norm, -lightDir);
 	float sunL = 0.5 + (0.5 * sun);
 	sun = saturate(sun);
-	sun = mix(sun, sunL, IN._Softness);
+	sun = mix(sun, sunL, _Softness);
 	coeff = float3(1.0, 0.8, 0.0)
 	float through = saturate((coeff.x * flare) + (coeff.y * fnorm)) * transl;
-	if (!IN._UNITY_LIGHTING ) {
-		float4 colorLight = IN._ColorLight;
-		float4 colorShadow = IN._ColorShadow;
+	if (!_UNITY_LIGHTING ) {
+		float4 colorLight = _ColorLight;
+		float4 colorShadow = _ColorShadow;
 	} else {
 		colorLight = _LightColor0;
 		colorShadow = 1.0;
@@ -106,11 +111,11 @@ float sss2;
 	}
 	float4 lcolor = colorShadow + colorLight;
 	float4 sunColor = mix(colorShadow, lcolor, sun);
-	if (IN._UNITY_LIGHTING) {
+	if (_UNITY_LIGHTING) {
 		sunColor = saturate(sunColor);
 	}
 	float4 color = IN.color * sunColor;
-	if (IN._UNITY_LIGHTING) {
+	if (_UNITY_LIGHTING) {
 		color = color + (0.1 * max(0.0, sunColor - 1.0));
 	}
 	float4 throughColor = ((1.3 * IN.color) * colorLight) + (colorLight * 0.3);
@@ -118,12 +123,9 @@ float sss2;
 	result = saturate(result);
 	UGlobal.APPLY_FOG(IN.UNITY_FOG_COORDS, result);
 	result27 = result;
-	return result27;
-
-}
-
-float4 main(in input_from_vertex IN)
-{
+	return OUT;
 /*___unresolved_____
 
 _____________*/
+
+}

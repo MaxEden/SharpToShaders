@@ -36,7 +36,7 @@ namespace Compiler
                 {
                     if (item.Implements("Shader.Lib.IShader"))
                     {
-                        var builder = new ShaderBuilder();
+                        var builder = new ShaderCompiler();
                         builder.Build(new HLSL(), _srcPath + "/", item);
                         builder.Build(new GLSL(), _srcPath + "/", item);
                     }

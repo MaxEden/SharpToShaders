@@ -1,7 +1,6 @@
 ﻿using Compiler;
 using Mono.Cecil;
 using System.Text;
-using static Compiler.ShaderBuilder;
 using Lemon.Tools;
 
 namespace Shader.BuildTarget
@@ -19,9 +18,6 @@ namespace Shader.BuildTarget
             {"float3", "float3"},
             {"float4", "float4"},
 
-            //{"fixed2", "float2"},
-            //{"fixed3", "float3"},
-            //{"fixed4", "float4"},
         };
 
         private static Dictionary<string, string> _methodMap = new()
@@ -193,7 +189,16 @@ namespace Shader.BuildTarget
                 sb.AppendLine(Context.Builder.Body.ToString());
 
                 sb.AppendLine("}");
-            }                       
+            }
+
+            if (Context.Builder.SubMethods != null)
+                foreach (var meth in Context.Builder.SubMethods)
+                {
+                    sb.AppendLine(meth.Value.Header);
+                    sb.AppendLine("{");
+                    sb.AppendLine(meth.Value.Body.ToString());
+                    sb.AppendLine("}");
+                }
         }
 
         public void AddVarying(ProgramType programType, FieldDefinition field, VarType varType, InputType input)
@@ -264,6 +269,11 @@ namespace Shader.BuildTarget
                         });
                 }
             }
+        }
+
+        public void AddVarying(ProgramType programType, ParameterDefinition parameter, VarType varying, InputType @in)
+        {
+            throw new NotImplementedException();
         }
     }
 }

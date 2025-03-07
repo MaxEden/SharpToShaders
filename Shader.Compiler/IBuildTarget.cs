@@ -7,7 +7,6 @@ namespace Shader.BuildTarget
     public interface IBuildTarget
     {
         Context Context { get; set; }
-
         void AddVarying(ProgramType programType, FieldDefinition field, VarType attribute, InputType @in);
         bool MapField(FieldReference fieldRef, out string text);
         bool MapMethod(MethodReference methodRef, string call, out string result);

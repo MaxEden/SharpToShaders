@@ -8,14 +8,15 @@ float2 texcoord : TEXCOORD0;
 struct vertex_to_pixel
 {
 float4 vertex : POSITION;
-fixed4 color : COLOR;
-half2 texcoord : TEXCOORD0;
+float4 color : COLOR;
+float2 texcoord : TEXCOORD0;
 float3 worldPos : TEXCOORD1;
 }
 
+
 vertex_to_pixel main(in vertex_info IN)
 {
-	vertex_to_pixel OUT;
+vertex_to_pixel OUT;
 	OUT.worldPos = mul(ObjectToWorld, IN.vertex);
 	OUT.vertex = ObjectToClipPos(IN.vertex);
 	OUT.texcoord = IN.texcoord;
@@ -23,6 +24,3 @@ vertex_to_pixel main(in vertex_info IN)
 	return OUT;
 
 }
-/*___unresolved_____
-
-_____________*/
