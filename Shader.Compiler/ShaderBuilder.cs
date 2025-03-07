@@ -10,6 +10,7 @@ using Shader.BuildTarget;
 
 namespace Compiler
 {
+
     public class ShaderBuilder
     {
         static Dictionary<string, string> _operators = new()
@@ -20,27 +21,6 @@ namespace Compiler
             { "op_Subtraction", "-" },
         };
 
-        //static Dictionary<string, string> _typeMap = new()
-        //{
-        //    {"Single", "float" },
-        //    {"Double", "double" },
-        //    {"Boolean", "bool" },
-        //    {"Int32", "int" },
-
-        //    {"float2", "vec2"},
-        //    {"float3", "vec3"},
-        //    {"float4", "vec4"},
-
-        //    {"fixed2", "vec2"},
-        //    {"fixed3", "vec3"},
-        //    {"fixed4", "vec4"},
-        //};
-
-        private static Dictionary<string, string> _methodMap = new()
-        {
-            { "tex2D", "texture2D" }
-        };
-
         private Dictionary<Code, string> _brComp = new()
         {
             { Code.Blt, "<" },
@@ -49,13 +29,6 @@ namespace Compiler
             { Code.Ble, "<=" },
             { Code.Beq, "==" },
         };
-
-        public enum ProgramType
-        {
-            None,
-            Vertex,
-            Fragment
-        }
 
         private StringBuilder _body;
         private int _stk;
@@ -73,9 +46,7 @@ namespace Compiler
         private IBuildTarget _buildTarget;
         private ProgramType _programType;
 
-        
-
-        public Dictionary<FieldReference, Var> Varyings  => _varyings;
+        public Dictionary<FieldReference, Var> Varyings => _varyings;
         public List<NamedStack> NamedStackLocals => _namedStkLocals;
 
         public StringBuilder Body => _body;
@@ -91,49 +62,6 @@ namespace Compiler
 
             var method1 = type.GetMethods().First(p => p.Name.StartsWith("Vert", StringComparison.InvariantCultureIgnoreCase));
             Build(buildTarget, path, type, method1, ProgramType.Vertex);
-        }
-
-        public class LocalVar
-        {
-            public VariableDefinition definition;
-            public string name;
-            public int set;
-            public int load;
-            public bool canBeRef;
-            public bool canBeOmitted;
-            public bool canInline;
-            public bool isDeclared;
-            public StackItem RefValue { get; set; }
-
-            public override string ToString()
-            {
-                return name;
-            }
-        }
-
-        public enum VarType
-        {
-            None,
-            Varying,
-            Attribute,
-            Uniform
-        }
-
-        public enum InputType
-        {
-            None,
-            In,
-            Out            
-        }
-        public class Var
-        {
-            public VarType Type;
-            public TypeReference FieldType;
-            public string Name;
-            public bool IsUsed;
-            public bool BuiltIn;
-            public InputType InputType;
-            public string Semantic;
         }
 
         internal string Build(IBuildTarget buildTarget, string path, TypeDefinition type, MethodDefinition method, ProgramType programType)
@@ -173,11 +101,11 @@ namespace Compiler
 
             var sb = new StringBuilder();
 
-          
+
             _buildTarget.Context.Builder = this;
 
             _buildTarget.WriteOut(sb);
-           
+
             sb.AppendLine("/*___unresolved_____");
             sb.AppendLine(_unresolved.ToString());
             sb.AppendLine("_____________*/");
@@ -216,6 +144,11 @@ namespace Compiler
         {
             _varyings.Clear();
 
+            foreach (var field in typeDefinition.Fields)
+            {
+                _buildTarget.AddVarying(_programType, field, VarType.Uniform, InputType.In);
+            }
+
             if (_programType == ProgramType.Vertex)
             {
                 foreach (var parameter in method.Parameters.ToArray())
@@ -226,37 +159,19 @@ namespace Compiler
                     }
                 }
 
-                foreach (var field in typeDefinition.Fields)
-                {
-                    _buildTarget.AddVarying(_programType, field, VarType.Uniform, InputType.In);
-                }
-
                 foreach (var field in method.ReturnType.Resolve().Fields)
                 {
                     _buildTarget.AddVarying(_programType, field, VarType.Varying, InputType.Out);
                 }
             }
-
-            if (_programType == ProgramType.Fragment)
+            else if (_programType == ProgramType.Fragment)
             {
                 foreach (var parameter in method.Parameters.ToArray())
                 {
-                    if (parameter.ParameterType.IsPrimitive)
+                    foreach (var field in parameter.ParameterType.Resolve().Fields)
                     {
-
+                        _buildTarget.AddVarying(_programType, field, VarType.Varying, InputType.In);
                     }
-                    else
-                    {
-                        foreach (var field in parameter.ParameterType.Resolve().Fields)
-                        {                           
-                             _buildTarget.AddVarying(_programType, field, VarType.Varying, InputType.In);
-                        }
-                    }
-                }
-
-                foreach (var field in typeDefinition.Fields)
-                {
-                    _buildTarget.AddVarying(_programType, field, VarType.Uniform, InputType.In);
                 }
             }
 
@@ -332,9 +247,9 @@ namespace Compiler
 
 
                 var name = _locals[i].name;
-                if (_varyings.Values.Any(p=>p.Name == name))
+                if (_varyings.Values.Any(p => p.Name == name))
                 {
-                    _locals[i].name = "l" + i +"_"+ name;
+                    _locals[i].name = "l" + i + "_" + name;
                 }
             }
 
@@ -469,7 +384,7 @@ namespace Compiler
                         }
                         else
                         {
-                            if (local.canInline &&!local.isDeclared)
+                            if (local.canInline && !local.isDeclared)
                             {
                                 local.isDeclared = true;
                                 AppendLine($"{typeName} {local.name} = {Pop(typeName).text};");
@@ -592,10 +507,10 @@ namespace Compiler
                     }
                     break;
                 case Code.Stobj:
-                {
-                    var typeRef = (TypeReference)op.Operand;
-                    PopTwo(out var left, out var right, MapTypeName(typeRef));
-                    AppendLine(left + " = " + right + ";");
+                    {
+                        var typeRef = (TypeReference)op.Operand;
+                        PopTwo(out var left, out var right, MapTypeName(typeRef));
+                        AppendLine(left + " = " + right + ";");
                     }
                     break;
                 case Code.Ldc_R4:
@@ -1158,14 +1073,10 @@ namespace Compiler
 
             _body.AppendLine(line);
         }
-        public class NamedStack
-        {
-            public string name;
-            public string expectedType;
-        }
+
         private bool MapReturn(StackItem popped, out string text)
         {
-            if(_buildTarget.MapReturn(popped, out text))
+            if (_buildTarget.MapReturn(popped, out text))
             {
                 return true;
             }
@@ -1199,7 +1110,7 @@ namespace Compiler
         private bool MapMethod(MethodReference methodRef, string call, out string result)
         {
             if (_buildTarget.MapMethod(methodRef, call, out result)) return true;
-           
+
             if (methodRef.Name == "op_Implicit")
             {
                 result = call;
@@ -1231,5 +1142,61 @@ namespace Compiler
                 needsBrackets = true
             });
         }
+    }
+
+    public enum ProgramType
+    {
+        None,
+        Vertex,
+        Fragment
+    }
+
+    public enum VarType
+    {
+        None,
+        Varying,
+        Attribute,
+        Uniform
+    }
+
+    public enum InputType
+    {
+        None,
+        In,
+        Out
+    }
+    public class Var
+    {
+        public VarType Type;
+        public TypeReference FieldType;
+        public string Name;
+        public bool IsUsed;
+        public bool BuiltIn;
+        public InputType InputType;
+        public string Semantic;
+    }
+
+    public class LocalVar
+    {
+        public VariableDefinition definition;
+        public string name;
+        public int set;
+        public int load;
+        public bool canBeRef;
+        public bool canBeOmitted;
+        public bool canInline;
+        public bool isDeclared;
+        public StackItem RefValue { get; set; }
+
+        public override string ToString()
+        {
+            return name;
+        }
+    }
+
+    public class NamedStack
+    {
+        public string name;
+        public string expectedType;
     }
 }

@@ -31,13 +31,13 @@ namespace Shader.BuildTarget
         public Context Context { get; set; }
         public bool MapReturn(StackItem popped, out string text)
         {
-            if (Context.Builder.Program == ShaderBuilder.ProgramType.Vertex)
+            if (Context.Builder.Program == ProgramType.Vertex)
             {
                 text = $"return;//gl_Position is set";
                 return true;
             }
 
-            if (Context.Builder.Program == ShaderBuilder.ProgramType.Fragment)
+            if (Context.Builder.Program == ProgramType.Fragment)
             {
                 text = $"gl_FragColor = {popped}; return;";
                 return true;

@@ -31,13 +31,13 @@ namespace Shader.BuildTarget
         public Context Context { get; set; }
         public bool MapReturn(StackItem popped, out string text)
         {
-            if (Context.Builder.Program == ShaderBuilder.ProgramType.Vertex)
+            if (Context.Builder.Program == ProgramType.Vertex)
             {
                 text = $"return OUT;";
                 return true;
             }
 
-            if (Context.Builder.Program == ShaderBuilder.ProgramType.Fragment)
+            if (Context.Builder.Program == ProgramType.Fragment)
             {
                 text = $"return {popped};";
                 return true;
@@ -193,17 +193,7 @@ namespace Shader.BuildTarget
                 sb.AppendLine(Context.Builder.Body.ToString());
 
                 sb.AppendLine("}");
-            }
-            
-            if (Context.Builder.Program == ProgramType.Vertex)
-            {
-
-            }
-            else
-            {
-                sb.AppendLine();
-                sb.AppendLine("float4 main(in input_from_vertex IN)\n{");
-            }                                
+            }                       
         }
 
         public void AddVarying(ProgramType programType, FieldDefinition field, VarType varType, InputType input)
