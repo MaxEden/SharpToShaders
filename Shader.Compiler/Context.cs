@@ -4,7 +4,7 @@ namespace Shader.BuildTarget
 {
     public class Context
     {
-        //public ShaderBuilder.ProgramType ProgramType;
+        public ShaderProgram ShaderProgram { get; internal set; }
 
         public MethodBuilder Builder { get; internal set; }
     }

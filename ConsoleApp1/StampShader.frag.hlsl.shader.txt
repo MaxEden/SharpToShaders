@@ -1,12 +1,8 @@
-struct vertex_info
+struct input_from_vertex
 {
 float4 color : COLOR;
 float2 texcoord : TEXCOORD0;
 float3 worldPos : TEXCOORD1;
-}
-
-struct vertex_to_pixel
-{
 }
 
 sampler2D _MainTex;
@@ -14,13 +10,12 @@ sampler2D _PatternTex;
 float4 _ScalePattern;
 float _AlphaAdd;
 
-vertex_to_pixel main(in vertex_info IN)
+float4 main(in input_from_vertex IN)
 {
-vertex_to_pixel OUT;
 	float2 uv = IN.worldPos.xy * _ScalePattern.xy;
 	float4 pattern = tex2D(_PatternTex, uv);
 	float4 c = tex2D(_MainTex, IN.texcoord);
-	float l = Luminance(c.rgb);
+	float l = Global_Luminance(c.rgb);
 	l = luminance(c);
 	l = l - _ScalePattern.z;
 	l = l * _ScalePattern.w;
@@ -30,7 +25,12 @@ vertex_to_pixel OUT;
 	c.rgb = c.rgb * c.a;
 	c.rgb = c.rgb + (1 - c.a);
 	c = saturate(c);
-	return OUT;
+	return c;
+
+}
+float Global_Luminance(float3 rgb)
+{
+	return 0.3333 * ((rgb.r + rgb.g) + rgb.b);
 
 }
 float luminance(float4 color)

@@ -27,13 +27,13 @@ namespace Shader.BuildTarget
         public Context Context { get; set; }
         public bool MapReturn(StackItem popped, out string text)
         {
-            if (Context.Builder.Program == ProgramType.Vertex)
+            if (Context.Builder.ProgramType == ProgramType.Vertex)
             {
                 text = $"return OUT;";
                 return true;
             }
 
-            if (Context.Builder.Program == ProgramType.Fragment)
+            if (Context.Builder.ProgramType == ProgramType.Fragment)
             {
                 text = $"return {popped};";
                 return true;
@@ -89,8 +89,8 @@ namespace Shader.BuildTarget
                     result = met + call;
                     return true;
                 }
-                result = methodRef.Name + call;
-                return true;
+                //result = methodRef.Name + call;
+                //return true;
             }
 
             if (methodRef.Name == "op_Implicit")
@@ -105,7 +105,7 @@ namespace Shader.BuildTarget
 
         public void WriteOut(StringBuilder sb)
         {
-            if(Context.Builder.Program == ProgramType.Vertex)
+            if(Context.ShaderProgram.ProgramType == ProgramType.Vertex)
             {
                 sb.AppendLine("struct vertex_info\n{");
                 foreach (var field in Context.Builder.Varyings.Values.Where(p => p.IsUsed && !p.BuiltIn && p.Type == VarType.Attribute))
@@ -123,7 +123,7 @@ namespace Shader.BuildTarget
                 sb.AppendLine("}");
                 sb.AppendLine();
 
-                foreach (var field in Context.Builder.Varyings.Values.Where(p => p.IsUsed && !p.BuiltIn && p.Type == VarType.Uniform))
+                foreach (var field in Context.ShaderProgram.Uniforms.Values.Where(p => p.IsUsed && !p.BuiltIn && p.Type == VarType.Uniform))
                 {
                     sb.AppendLine($"{Context.Builder.MapTypeName(field.FieldType)} {field.Name};");
                 }
@@ -162,7 +162,7 @@ namespace Shader.BuildTarget
                 sb.AppendLine("}");
                 sb.AppendLine();
 
-                foreach (var field in Context.Builder.Varyings.Values.Where(p => p.IsUsed && !p.BuiltIn && p.Type == VarType.Uniform))
+                foreach (var field in Context.ShaderProgram.Uniforms.Values.Where(p => p.IsUsed && !p.BuiltIn && p.Type == VarType.Uniform))
                 {
                     sb.AppendLine($"{Context.Builder.MapTypeName(field.FieldType)} {field.Name};");
                 }
@@ -191,9 +191,11 @@ namespace Shader.BuildTarget
                 sb.AppendLine("}");
             }
 
-            if (Context.Builder.SubMethods != null)
-                foreach (var meth in Context.Builder.SubMethods)
+            if (Context.ShaderProgram.TargetMethods != null)
+                foreach (var meth in Context.ShaderProgram.BuiltMethods)
                 {
+                    if (meth.Key == Context.ShaderProgram.MainMethod) continue;
+
                     sb.AppendLine(meth.Value.Header);
                     sb.AppendLine("{");
                     sb.AppendLine(meth.Value.Body.ToString());

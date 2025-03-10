@@ -43,6 +43,7 @@ namespace Compiler
         private HashSet<Instruction> _returnBranches;
 
         private Dictionary<FieldReference, Var> _varyings = new();
+        private ShaderProgram _shaderProgram;
         private IBuildTarget _buildTarget;
         private ProgramType _programType;
 
@@ -53,17 +54,18 @@ namespace Compiler
 
         public LocalVar[] Locals => _locals;
 
-        public ProgramType Program => _programType;
+        public ProgramType ProgramType => _programType;
 
-        public void Build(IBuildTarget buildTarget, TypeDefinition type, MethodDefinition method, ProgramType programType)
+        public string Header { get; private set; }
+
+        public void Build(ShaderProgram shaderProgram, MethodDefinition method, ProgramType programType)
         {
             Stack.Clear();
 
-            _buildTarget = buildTarget;
-            _buildTarget.Context = new Context
-            {
-                Builder = this
-            };
+            _shaderProgram = shaderProgram;
+            _buildTarget = shaderProgram.BuildTarget;
+            _buildTarget.Context.Builder = this;
+
             _programType = programType;
             _indent = 0;
             _body = new StringBuilder();
@@ -71,7 +73,7 @@ namespace Compiler
 
             _method = method;
 
-            BuildVaryings(type, method);
+            BuildVaryings(method);
 
             LocalsSetup(method);
 
@@ -103,12 +105,29 @@ namespace Compiler
            _body.Append(sb);
         }
 
+        public string ToIdentifer(MethodReference method)
+        {
+            if(method.DeclaringType == _shaderProgram.MainType)
+            {
+                return method.Name;
+            }
+
+            //char[] chars = method.FullName.ToCharArray();
+            //for (int i = 0; i < chars.Length; i++)
+            //{
+            //    if (!char.IsLetterOrDigit(chars[i])) chars[i]= '_';
+            //}
+            //return new string(chars);
+
+            return method.DeclaringType.Name + "_" + method.Name;
+        }
+
         private void BuildHeader()
         {
             var sb = new StringBuilder();
             sb.Append(MapTypeName(_method.ReturnType));
             sb.Append(" ");
-            sb.Append(_method.Name);
+            sb.Append(ToIdentifer(_method));
             sb.Append("(");
 
             int index = 0;
@@ -146,14 +165,9 @@ namespace Compiler
             File.WriteAllText(path + method.DeclaringType.Name + "." + method.Name + ".opcodes.txt", instB.ToString());
         }
 
-        private void BuildVaryings(TypeDefinition typeDefinition, MethodDefinition method)
+        private void BuildVaryings(MethodDefinition method)
         {
             _varyings.Clear();
-
-            foreach (var field in typeDefinition.Fields)
-            {
-                _buildTarget.AddVarying(_programType, field, VarType.Uniform, InputType.In);
-            }
 
             if (_programType == ProgramType.Vertex)
             {
@@ -200,6 +214,11 @@ namespace Compiler
                     {
                         value.IsUsed = true;
                     }
+
+                    if(_shaderProgram.Uniforms.TryGetValue(field, out value))
+                    {
+                        value.IsUsed = true;
+                    }
                 }
             }
         }
@@ -209,7 +228,7 @@ namespace Compiler
             var locals = method.Body.Variables.OrderBy(p => p.Index).ToArray();
 
             var scope = method.DebugInformation.Scope;
-            var debugLocals = scope.Variables.ToArray();
+            var debugLocals = scope?.Variables.ToArray();
 
             _locals = new LocalVar[locals.Length];
             for (int i = 0; i < locals.Length; i++)
@@ -240,7 +259,7 @@ namespace Compiler
             for (var i = 0; i < _locals.Length; i++)
             {
                 var localVar = _locals[i];
-                var dbg = debugLocals.FirstOrDefault(p => p.Index == i);
+                var dbg = debugLocals?.FirstOrDefault(p => p.Index == i);
                 if (dbg != null)
                 {
                     localVar.name = dbg.Name;
@@ -607,7 +626,7 @@ namespace Compiler
                             }
                             else
                             {
-                                call = name + call;
+                                call = name + call;                                                              
                             }
 
                             if (methodRef.HasThis)
@@ -616,7 +635,10 @@ namespace Compiler
                             }
                             else
                             {
-                                call = Access(methodRef.DeclaringType.Name, call);
+                                
+                                call = methodRef.DeclaringType.Name + "_" + call;
+                                _unresolved.AppendLine(call);
+                                //call = Access(methodRef.DeclaringType.Name, call);
                             }
                         }
 
@@ -1102,6 +1124,12 @@ namespace Compiler
         }
         private bool MapField(FieldReference fieldRef, out string text)
         {
+            if(_shaderProgram.Uniforms.TryGetValue(fieldRef, out var uniform))
+            {
+                text = uniform.Name;
+                return true;
+            }
+
             if (_varyings.TryGetValue(fieldRef, out var value))
             {
                 text = value.Name;
@@ -1124,13 +1152,8 @@ namespace Compiler
             return typeRef.Name;
         }
 
-        public HashSet<MethodReference> CalledMethods { get; set; } = new HashSet<MethodReference>();
-        public Dictionary<MethodReference, MethodBuilder> SubMethods { get; internal set; }
-        public string Header { get; private set; }
-
         private bool MapMethod(MethodReference methodRef, string call, out string result)
         {         
-
             if (_buildTarget.MapMethod(methodRef, call, out result)) return true;
 
             if (methodRef.Name == "op_Implicit")
@@ -1139,10 +1162,9 @@ namespace Compiler
                 return true;
             }
 
-            if(methodRef.DeclaringType == _method.DeclaringType)
-            {
-                CalledMethods.Add(methodRef);
-                result = methodRef.Name + call;
+            if(_shaderProgram.TargetMethods.Contains(methodRef.Resolve()))
+            {               
+                result = ToIdentifer(methodRef) + call;
                 return true;
             }
 
