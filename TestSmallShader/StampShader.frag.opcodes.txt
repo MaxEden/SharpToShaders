@@ -1,0 +1,93 @@
+Nop 
+Ldarg IN ParameterDefinition
+Ldfld Shader.Vectors.float3 TestSmallShader.StampShader/v2f::worldPos FieldDefinition
+Ldfld Shader.Vectors.float2 Shader.Vectors.float3::xy FieldReference
+Ldarg  ParameterDefinition
+Ldflda Shader.Vectors.float4 TestSmallShader.StampShader::_ScalePattern FieldDefinition
+Ldfld Shader.Vectors.float2 Shader.Vectors.float4::xy FieldReference
+Call Shader.Vectors.float2 Shader.Vectors.float2::op_Multiply(Shader.Vectors.float2,Shader.Vectors.float2) MethodReference
+Stloc V_0 VariableDefinition
+Ldarg  ParameterDefinition
+Ldfld Shader.Lib.sampler2D TestSmallShader.StampShader::_PatternTex FieldDefinition
+Ldloc V_0 VariableDefinition
+Call Shader.Vectors.float4 Shader.Lib.Global::tex2D(Shader.Lib.sampler2D,Shader.Vectors.float2) MethodReference
+Stloc V_1 VariableDefinition
+Ldarg  ParameterDefinition
+Ldfld Shader.Lib.sampler2D TestSmallShader.StampShader::_MainTex FieldDefinition
+Ldarg IN ParameterDefinition
+Ldfld Shader.Vectors.float2 TestSmallShader.StampShader/v2f::texcoord FieldDefinition
+Call Shader.Vectors.float4 Shader.Lib.Global::tex2D(Shader.Lib.sampler2D,Shader.Vectors.float2) MethodReference
+Stloc V_2 VariableDefinition
+Ldloc V_2 VariableDefinition
+Ldfld Shader.Vectors.float3 Shader.Vectors.float4::rgb FieldReference
+Call System.Single Shader.Lib.Global::Luminance(Shader.Vectors.float3) MethodReference
+Stloc V_3 VariableDefinition
+Ldarg  ParameterDefinition
+Ldloc V_2 VariableDefinition
+Call System.Single TestSmallShader.StampShader::average(Shader.Vectors.float4) MethodDefinition
+Stloc V_3 VariableDefinition
+Ldloc V_3 VariableDefinition
+Ldarg  ParameterDefinition
+Ldflda Shader.Vectors.float4 TestSmallShader.StampShader::_ScalePattern FieldDefinition
+Ldfld System.Single Shader.Vectors.float4::z FieldReference
+Sub 
+Stloc V_3 VariableDefinition
+Ldloc V_3 VariableDefinition
+Ldarg  ParameterDefinition
+Ldflda Shader.Vectors.float4 TestSmallShader.StampShader::_ScalePattern FieldDefinition
+Ldfld System.Single Shader.Vectors.float4::w FieldReference
+Mul 
+Stloc V_3 VariableDefinition
+Ldloca V_2 VariableDefinition
+Ldloc V_3 VariableDefinition
+Call System.Single Shader.Lib.math::saturate(System.Single) MethodReference
+Ldarg IN ParameterDefinition
+Ldfld Shader.Vectors.float4 TestSmallShader.StampShader/v2f::color FieldDefinition
+Call Shader.Vectors.float4 Shader.Vectors.float4::op_Addition(System.Single,Shader.Vectors.float4) MethodReference
+Call Shader.Vectors.float3 Shader.Vectors.float4::op_Implicit(Shader.Vectors.float4) MethodReference
+Stfld Shader.Vectors.float3 Shader.Vectors.float4::rgb FieldReference
+Ldloca V_2 VariableDefinition
+Ldloc V_2 VariableDefinition
+Ldfld System.Single Shader.Vectors.float4::a FieldReference
+Ldloc V_1 VariableDefinition
+Ldfld System.Single Shader.Vectors.float4::a FieldReference
+Ldarg  ParameterDefinition
+Ldfld System.Single TestSmallShader.StampShader::_AlphaAdd FieldDefinition
+Add 
+Ldarg IN ParameterDefinition
+Ldfld Shader.Vectors.float4 TestSmallShader.StampShader/v2f::color FieldDefinition
+Ldfld System.Single Shader.Vectors.float4::a FieldReference
+Ldc_R4 1 Single
+Sub 
+Add 
+Mul 
+Stfld System.Single Shader.Vectors.float4::a FieldReference
+Ldloc V_2 VariableDefinition
+Call Shader.Vectors.float4 Shader.Lib.math::saturate(Shader.Vectors.float4) MethodReference
+Stloc V_2 VariableDefinition
+Ldloca V_2 VariableDefinition
+Ldflda Shader.Vectors.float3 Shader.Vectors.float4::rgb FieldReference
+Dup 
+Ldobj Shader.Vectors.float3 TypeReference
+Ldloc V_2 VariableDefinition
+Ldfld System.Single Shader.Vectors.float4::a FieldReference
+Call Shader.Vectors.float3 Shader.Vectors.float3::op_Multiply(Shader.Vectors.float3,System.Single) MethodReference
+Stobj Shader.Vectors.float3 TypeReference
+Ldloca V_2 VariableDefinition
+Ldflda Shader.Vectors.float3 Shader.Vectors.float4::rgb FieldReference
+Dup 
+Ldobj Shader.Vectors.float3 TypeReference
+Ldc_R4 1 Single
+Ldloc V_2 VariableDefinition
+Ldfld System.Single Shader.Vectors.float4::a FieldReference
+Sub 
+Call Shader.Vectors.float3 Shader.Vectors.float3::op_Addition(Shader.Vectors.float3,System.Single) MethodReference
+Stobj Shader.Vectors.float3 TypeReference
+Ldloc V_2 VariableDefinition
+Call Shader.Vectors.float4 Shader.Lib.math::saturate(Shader.Vectors.float4) MethodReference
+Stloc V_2 VariableDefinition
+Ldloc V_2 VariableDefinition
+Stloc V_4 VariableDefinition
+Br IL_0109: ldloc V_4 Instruction
+Ldloc V_4 VariableDefinition
+Ret 

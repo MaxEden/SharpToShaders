@@ -1,9 +1,7 @@
-﻿using ConsoleApp1;
-using Shader.Lib;
+﻿using Shader.Lib;
 using Shader.Vectors;
-using System.Diagnostics;
 
-namespace _ConsoleApp1
+namespace TestSmallShader
 {
     class StampShader : IShader
     {
@@ -50,21 +48,21 @@ namespace _ConsoleApp1
             float4 pattern = Global.tex2D(_PatternTex, uv);
             float4 c = Global.tex2D(_MainTex, IN.texcoord);
             float l = Global.Luminance(c.rgb);
-            l = luminance(c);
+            l = average(c);
             l -= _ScalePattern.z;
             l *= _ScalePattern.w;
             c.rgb = math.saturate(l) + IN.color;
             c.a = c.a * (pattern.a + _AlphaAdd + (IN.color.a - 1));// add brackets to stack
             c = math.saturate(c);
             c.rgb *= c.a;
-            c.rgb += (1 - c.a);
+            c.rgb += 1 - c.a;
             c = math.saturate(c);
             return c;
         }
 
-        float luminance(float4 color)
+        float average(float4 color)
         {
-            return 0.333f * (color.r + color.g + color.b);
+            return (color.r + color.g + color.b + color.a)/4;
         }
     }
 }

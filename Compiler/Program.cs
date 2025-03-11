@@ -3,6 +3,7 @@ using Lemon.Tools;
 using Mono.Cecil;
 using Mono.Cecil.Rocks;
 using Shader.BuildTarget;
+using System.Xml.Linq;
 using Watchers;
 
 namespace Compiler
@@ -13,17 +14,18 @@ namespace Compiler
 
         static void Main(string[] args)
         {
-            _srcPath = Path.GetFullPath("../../../../ConsoleApp1");
-            var dllPath = Path.GetFullPath("../../../../ConsoleApp1\\bin\\Debug\\net8.0");
+            _srcPath = Path.GetFullPath("../../../../TestSmallShader");
+            var dllPath = Path.GetFullPath("../../../../TestSmallShader/bin/Debug/net8.0");
             Console.WriteLine(_srcPath);
 
-            foreach (var item in Directory.GetFiles(_srcPath, "*.dll"))
+            foreach (var item in Directory.GetFiles(dllPath, "*.dll"))
             {
                 Console.WriteLine(item);
             }
 
             var lemon = new LemonWeaver(p => Console.WriteLine(p));
-            lemon.Read(new[] { dllPath }, p => true, Read);
+            lemon.Read(new[] { dllPath }, p => !p.Name.StartsWith("Shader."), Read);
+            Console.WriteLine("Done.");
         }
 
         private static void Read(List<AssemblyDefinition> list, Action<string> action)

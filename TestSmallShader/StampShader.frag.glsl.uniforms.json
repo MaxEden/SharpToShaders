@@ -1,0 +1,8 @@
+{
+  "Uniforms": {
+    "_MainTex": "sampler2D",
+    "_PatternTex": "sampler2D",
+    "_ScalePattern": "float4",
+    "_AlphaAdd": "Single"
+  }
+}

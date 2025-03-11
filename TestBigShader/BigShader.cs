@@ -1,9 +1,7 @@
-﻿using ConsoleApp1;
-using _ConsoleApp1;
-using Shader.Lib;
+﻿using Shader.Lib;
 using Shader.Vectors;
 
-namespace Shaders
+namespace TestBigShader
 {
     struct ShaderFeature
     {
@@ -20,7 +18,6 @@ namespace Shaders
         //#pragma multi_compile_instancing
         ShaderFeature _UNITY_LIGHTING;
         ShaderFeature _SMOOTH_FADE;
-
         //#pragma vertex vertGrass
         //#pragma fragment fragGrass
 

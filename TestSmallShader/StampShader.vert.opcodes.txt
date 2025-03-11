@@ -1,0 +1,26 @@
+Nop 
+Ldloca V_0 VariableDefinition
+Ldsfld System.Numerics.Matrix4x4 Shader.Lib.Global::ObjectToWorld FieldReference
+Ldarg IN ParameterDefinition
+Ldfld Shader.Vectors.float4 TestSmallShader.StampShader/appdata_t::vertex FieldDefinition
+Call Shader.Vectors.float4 Shader.Lib.math::mul(System.Numerics.Matrix4x4,Shader.Vectors.float4) MethodReference
+Call Shader.Vectors.float3 Shader.Vectors.float4::op_Implicit(Shader.Vectors.float4) MethodReference
+Stfld Shader.Vectors.float3 TestSmallShader.StampShader/v2f::worldPos FieldDefinition
+Ldloca V_0 VariableDefinition
+Ldarg IN ParameterDefinition
+Ldfld Shader.Vectors.float4 TestSmallShader.StampShader/appdata_t::vertex FieldDefinition
+Call Shader.Vectors.float4 Shader.Lib.Global::ObjectToClipPos(Shader.Vectors.float4) MethodReference
+Stfld Shader.Vectors.float4 TestSmallShader.StampShader/v2f::vertex FieldDefinition
+Ldloca V_0 VariableDefinition
+Ldarg IN ParameterDefinition
+Ldfld Shader.Vectors.float2 TestSmallShader.StampShader/appdata_t::texcoord FieldDefinition
+Stfld Shader.Vectors.float2 TestSmallShader.StampShader/v2f::texcoord FieldDefinition
+Ldloca V_0 VariableDefinition
+Ldarg IN ParameterDefinition
+Ldfld Shader.Vectors.float4 TestSmallShader.StampShader/appdata_t::color FieldDefinition
+Stfld Shader.Vectors.float4 TestSmallShader.StampShader/v2f::color FieldDefinition
+Ldloc V_0 VariableDefinition
+Stloc V_1 VariableDefinition
+Br IL_004d: ldloc V_1 Instruction
+Ldloc V_1 VariableDefinition
+Ret 

@@ -19,9 +19,7 @@ namespace Shader.BuildTarget
             {"float3", "vec3"},
             {"float4", "vec4"},
 
-            //{"fixed2", "vec2"},
-            //{"fixed3", "vec3"},
-            //{"fixed4", "vec4"},
+            {"Matrix4x4","mat4x4"}
         };
 
         private static Dictionary<string, string> _methodMap = new()
@@ -66,8 +64,29 @@ namespace Shader.BuildTarget
             result = default;
             return false;
         }
-        public bool MapMethod(MethodReference methodRef, string call, out string result)
+        public bool MapMethod(MethodReference methodRef, Parameters call, out string result, out bool needsBrackets)
         {
+            needsBrackets = false;
+
+            if (call == null)
+            {
+                result = default;
+                if (methodRef.DeclaringType.Name == "MathF" || methodRef.DeclaringType.Name == "math")
+                {                    
+                    return true;
+                }
+
+                if (methodRef.DeclaringType.Name == "Global")
+                {
+                    if (_methodMap.TryGetValue(methodRef.Name, out var met))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
             if (methodRef.DeclaringType.Name == "MathF")
             {
                 result = methodRef.Name.ToLowerInvariant() + call;
@@ -82,6 +101,13 @@ namespace Shader.BuildTarget
                     return true;
                 }
 
+                if (methodRef.Name == "mul")
+                {
+                    result = call.List[0].btext + " * " + call.List[1].btext;
+                    needsBrackets = true; 
+                    return true;
+                }
+
                 result = methodRef.Name.ToLowerInvariant() + call;
                 return true;
             }
@@ -90,17 +116,11 @@ namespace Shader.BuildTarget
             {
                 if (_methodMap.TryGetValue(methodRef.Name, out var met))
                 {
-                    result = met + call;
+                    result = met + call.ToStringBrackets();
                     return true;
                 }
                 //result = methodRef.Name + call;
                 //return true;
-            }
-
-            if (methodRef.Name == "op_Implicit")
-            {
-                result = call;
-                return true;
             }
 
             result = default;
@@ -109,23 +129,37 @@ namespace Shader.BuildTarget
 
         public void WriteOut(StringBuilder sb)
         {
+            foreach (var field in Context.ShaderProgram.Uniforms.Values.Where(p => p.IsUsed && !p.BuiltIn && p.Type == VarType.Uniform))
+            {
+                sb.AppendLine($"uniform {Context.Builder.MapTypeName(field.FieldType)} {field.Name};");
+            }
+            sb.AppendLine();
+
+            if (Context.ShaderProgram.TargetMethods != null)
+                foreach (var meth in Context.ShaderProgram.BuiltMethods.Reverse())
+                {
+                    if (meth.Key == Context.ShaderProgram.MainMethod) continue;
+
+                    sb.AppendLine(meth.Value.Header);
+                    sb.AppendLine("{");
+                    sb.AppendLine(meth.Value.Body.ToString());
+                    sb.AppendLine("}");
+                }
+
+
             foreach (var field in Context.Builder.Varyings.Values.Where(p => p.IsUsed && !p.BuiltIn && p.Type == VarType.Attribute))
             {
                 sb.AppendLine($"attribute {Context.Builder.MapTypeName(field.FieldType)} {field.Name};");
             }
 
             sb.AppendLine();
-            foreach (var field in Context.ShaderProgram.Uniforms.Values.Where(p => p.IsUsed && !p.BuiltIn && p.Type == VarType.Uniform))
-            {
-                sb.AppendLine($"uniform {Context.Builder.MapTypeName(field.FieldType)} {field.Name};");
-            }
-            sb.AppendLine();
+
             foreach (var field in Context.Builder.Varyings.Values.Where(p => p.IsUsed && p.Type == VarType.Varying))
             {
                 sb.AppendLine($"varying {Context.Builder.MapTypeName(field.FieldType)} {field.Name};");
             }
             sb.AppendLine();
-            sb.AppendLine($"main(){{");
+            sb.AppendLine($"void main(){{");
 
             foreach (var local in Context.Builder.Locals)
             {
@@ -148,16 +182,7 @@ namespace Shader.BuildTarget
 
             sb.AppendLine("}");
 
-            if (Context.ShaderProgram.TargetMethods != null)
-                foreach (var meth in Context.ShaderProgram.BuiltMethods)
-                {
-                    if (meth.Key == Context.ShaderProgram.MainMethod) continue;
 
-                    sb.AppendLine(meth.Value.Header);
-                    sb.AppendLine("{");
-                    sb.AppendLine(meth.Value.Body.ToString());
-                    sb.AppendLine("}");
-                }
         }
 
         public void AddVarying(ProgramType programType, FieldDefinition field, VarType varType, InputType input)
@@ -194,7 +219,7 @@ namespace Shader.BuildTarget
                         Context.Builder.Varyings.Add(field,
                             new Var()
                             {
-                                Name = field.Name,
+                                Name = "v_" + field.Name,
                                 FieldType = field.FieldType,
                                 Type = varType,
                                 InputType = input
@@ -202,9 +227,9 @@ namespace Shader.BuildTarget
                     }
                 }
             }
-            else if(programType == ProgramType.Fragment)
+            else if (programType == ProgramType.Fragment)
             {
-                if(input == InputType.In)
+                if (input == InputType.In)
                 {
                     if (field.HasAttribute("POSITIONAttribute"))
                     {

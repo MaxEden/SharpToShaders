@@ -7,7 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Shader.Compiler\Shader.Builder.csproj" />
+    <ProjectReference Include="..\math\Shader.Vectors.csproj" />
+    <ProjectReference Include="..\Shader.Lib\Shader.Lib.csproj" />
   </ItemGroup>
 
 </Project>

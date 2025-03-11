@@ -23,8 +23,6 @@ namespace Compiler
                 BuildTarget = buildTarget
             };
 
-            Process(vertProg);
-
             var fragProg = new ShaderProgram()
             {
                 ProgramType = ProgramType.Fragment,
@@ -33,8 +31,12 @@ namespace Compiler
                 Path = path,
                 BuildTarget = buildTarget
             };
-            Process(fragProg);
 
+            MethodBuilder.DumpInstructions(path, vertProg.MainMethod);
+            MethodBuilder.DumpInstructions(path, fragProg.MainMethod);
+
+            Process(vertProg);      
+            Process(fragProg);
         }
 
         void Process(ShaderProgram ShaderProgram)
@@ -59,10 +61,44 @@ namespace Compiler
 
             var name = ShaderProgram.MainType.Name
                 + "." + ShaderProgram.MainMethod.Name
-                + "." + ShaderProgram.BuildTarget.GetType().Name.ToLowerInvariant()
-                + ".shader.txt";
+                + "." + ShaderProgram.BuildTarget.GetType().Name.ToLowerInvariant();
+                //+ ".shader.txt";
 
             File.WriteAllText(ShaderProgram.Path + name, sb.ToString());
+            Console.WriteLine("Output:" + ShaderProgram.Path + name);
+
+            WriteUniforms(ShaderProgram);
+        }
+
+        private void WriteUniforms(ShaderProgram shaderProgram)
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine("{");
+            sb.AppendLine("  \"Uniforms\": {");
+
+            var used = shaderProgram.Uniforms.Values.Where(p => p.IsUsed && !p.BuiltIn).ToArray();
+
+            for (int i = 0; i < used.Length; i++)
+            {
+                var item = used[i];
+                sb.Append($"    \"{item.Name}\": \"{item.FieldType.Name}\"");
+                if (i < used.Length - 1)
+                {
+                    sb.Append(',');
+                }
+                sb.AppendLine();
+            }
+
+            sb.AppendLine("  }");
+            sb.AppendLine("}");
+
+            var name = shaderProgram.MainType.Name
+                + "." + shaderProgram.MainMethod.Name
+                + "." + shaderProgram.BuildTarget.GetType().Name.ToLowerInvariant()
+                + ".uniforms.json";
+
+            File.WriteAllText(shaderProgram.Path + name, sb.ToString());
+            Console.WriteLine("Uniforms:" + shaderProgram.Path + name);
         }
 
         private void CollectCalls(ShaderProgram shaderProgram, ProgramType programType, Mono.Cecil.MethodDefinition method)
@@ -85,7 +121,7 @@ namespace Compiler
             foreach (var item in methods)
             {
                 if (shaderProgram.TargetMethods.Contains(item)) continue;
-                if (shaderProgram.BuildTarget.MapMethod(item, "", out _)) continue;
+                if (shaderProgram.BuildTarget.MapMethod(item, null, out _, out _)) continue;
 
                 if (item.DeclaringType.Implements("Shader.Lib.IShader"))
                 {

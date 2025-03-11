@@ -1,0 +1,6 @@
+{
+  "Uniforms": {
+    "ObjectToWorld": "Matrix4x4",
+    "MATRIX_VP": "Matrix4x4"
+  }
+}

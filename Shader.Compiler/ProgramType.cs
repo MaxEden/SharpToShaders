@@ -1,5 +1,6 @@
 ﻿using Mono.Cecil;
 using Mono.Cecil.Cil;
+using System.Text;
 
 namespace Compiler
 {
@@ -58,5 +59,31 @@ namespace Compiler
     {
         public string name;
         public string expectedType;
+    }
+
+    public class Parameters
+    {
+        public StackItem[] List;
+        public string ToParamString()
+        {
+            var sb = new StringBuilder();
+            for (int i = 0; i < List.Length; i++)
+            {
+                sb.Append(List[i].text);
+                if (i < List.Length - 1) sb.Append(", ");
+            }
+            return sb.ToString();
+        }
+
+        public string ToStringBrackets()
+        {
+            return "(" + ToParamString() + ")";
+        }
+
+        public override string ToString()
+        {
+            return ToStringBrackets();
+        }
+
     }
 }

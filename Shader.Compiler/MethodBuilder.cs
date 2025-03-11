@@ -162,7 +162,9 @@ namespace Compiler
                 instB.AppendLine();
             }
 
-            File.WriteAllText(path + method.DeclaringType.Name + "." + method.Name + ".opcodes.txt", instB.ToString());
+            var outputPath = path + method.DeclaringType.Name + "." + method.Name + ".opcodes.txt";
+            File.WriteAllText(outputPath, instB.ToString());
+            Console.WriteLine("OpCodes dump:" + outputPath);
         }
 
         private void BuildVaryings(MethodDefinition method)
@@ -603,11 +605,11 @@ namespace Compiler
 
                         var paramStr = PopParameters(methodRef);
 
-                        var call = "(" + paramStr + ")";
+                        var text = "";
 
-                        if (MapMethod(methodRef, call, out var result))
+                        if (MapMethod(methodRef, paramStr, out var result, out var needsBrackets))
                         {
-                            call = result;
+                            text = result;
                         }
                         else
                         {
@@ -616,36 +618,36 @@ namespace Compiler
                             if (name == ".ctor")
                             {
                                 var expectedType = MapTypeName(methodRef.ReturnType);
-                                AppendLine($"{Pop(expectedType)} = {methodRef.DeclaringType.Name}{call}");
+                                AppendLine($"{Pop(expectedType)} = {methodRef.DeclaringType.Name}{paramStr.ToStringBrackets()}");
                                 return op.Next;
                             }
                             else if (name.StartsWith("get_"))
                             {
                                 name = name.Substring(4);
-                                call = name;
+                                text = name;
                             }
                             else
                             {
-                                call = name + call;                                                              
+                                text = name + paramStr.ToStringBrackets();                                                              
                             }
 
                             if (methodRef.HasThis)
                             {
-                                call = Access(Pop().text, call);
+                                text = Access(Pop().text, text);
                             }
                             else
                             {
-                                
-                                call = methodRef.DeclaringType.Name + "_" + call;
-                                _unresolved.AppendLine(call);
+
+                                text = methodRef.DeclaringType.Name + "_" + text;
+                                _unresolved.AppendLine(text);
                                 //call = Access(methodRef.DeclaringType.Name, call);
                             }
                         }
 
                         if (methodRef.ReturnType.Name == "Void")
                         {
-                            call = call + ";";
-                            AppendLine(call);
+                            text = text + ";";
+                            AppendLine(text);
                         }
                         else
                         {
@@ -653,8 +655,9 @@ namespace Compiler
                             Push(new StackItem()
                             {
                                 expectedType = typeName,
-                                text = call,
-                                def = methodRef
+                                text = text,
+                                def = methodRef,
+                                needsBrackets = needsBrackets
                             });
                         }
                     }
@@ -662,34 +665,24 @@ namespace Compiler
                 case Code.Newobj:
                     {
                         var methodRef = (MethodReference)op.Operand;
+                        var paramStr = PopParameters(methodRef);
 
-                        var call = ")";
-                        int count = methodRef.Parameters.ToArray().Length;
+                        var text = "";
 
-                        for (int j = 0; j < count; j++)
+                        if (MapMethod(methodRef, paramStr, out var result, out var needsBrackets))
                         {
-                            call = Pop().text + call;
-                            if (j < count - 1)
-                            {
-                                call = ", " + call;
-                            }
-                        }
-
-                        call = "(" + call;
-
-                        if (MapMethod(methodRef, call, out var result))
-                        {
-                            call = result;
+                            text = result;
                         }
                         else
                         {
-                            call = methodRef.DeclaringType.Name + call;
+                            text = methodRef.DeclaringType.Name + "("+ paramStr.ToString()+")";
                         }
 
                         Push(new StackItem()
                         {
-                            text = call,
-                            def = methodRef
+                            text = text,
+                            def = methodRef,
+                            needsBrackets = needsBrackets
                         });
                     }
                     break;
@@ -725,23 +718,25 @@ namespace Compiler
             return op.Next;
         }
 
-        private string PopParameters(MethodReference methodRef)
+        private Parameters PopParameters(MethodReference methodRef)
         {
             var parameters = methodRef.Parameters.ToArray();
             int count = parameters.Length;
-            var result = "";
+
+            var par = new Parameters();
+            par.List = new StackItem[count];
+
             for (int j = count - 1; j >= 0; j--)
             {
                 var expectedType = MapTypeName(parameters[j].ParameterType);
-                result = Pop(expectedType).text + result;
-                if (j > 0)
-                {
-                    result = ", " + result;
-                }
+                var item = Pop(expectedType);
+                par.List[j] = item;
             }
 
-            return result;
+            return par;
         }
+
+
 
         private bool IsInScope(Instruction op)
         {
@@ -1152,13 +1147,14 @@ namespace Compiler
             return typeRef.Name;
         }
 
-        private bool MapMethod(MethodReference methodRef, string call, out string result)
+        private bool MapMethod(MethodReference methodRef, Parameters call, out string result, out bool needsBrackets)
         {         
-            if (_buildTarget.MapMethod(methodRef, call, out result)) return true;
+            if (_buildTarget.MapMethod(methodRef, call, out result, out needsBrackets)) return true;
 
+            needsBrackets = false;
             if (methodRef.Name == "op_Implicit")
             {
-                result = call;
+                result = call.ToString();
                 return true;
             }
 

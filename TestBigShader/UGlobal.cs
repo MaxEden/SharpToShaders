@@ -3,7 +3,7 @@ using System.Numerics;
 using Shader.Lib;
 using Shader.Vectors;
 
-namespace _ConsoleApp1
+namespace TestBigShader
 {
     public struct VERTEX_INPUT_INSTANCE_ID
     {
@@ -21,7 +21,7 @@ namespace _ConsoleApp1
     }
 
     internal class UGlobal
-    {         
+    {
 
         internal static float3 ShadeSH9(float4 float4)
         {
