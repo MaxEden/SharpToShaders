@@ -18,7 +18,6 @@ namespace Shader.BuildTarget
             {"float3", "float3"},
             {"float4", "float4"},
             {"Matrix4x4","float4x4"}
-
         };
 
         private static Dictionary<string, string> _methodMap = new()
@@ -165,7 +164,7 @@ namespace Shader.BuildTarget
                     );
                 }
 
-                sb.AppendLine(Context.Builder.Body.ToString());
+                sb.Append(Context.Builder.Body.ToString());
                 sb.AppendLine("}");
 
             }
@@ -197,7 +196,7 @@ namespace Shader.BuildTarget
                     );
                 }
 
-                sb.AppendLine(Context.Builder.Body.ToString());
+                sb.Append(Context.Builder.Body.ToString());
 
                 sb.AppendLine("}");
             }

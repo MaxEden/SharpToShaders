@@ -29,5 +29,4 @@ vertex_to_pixel main(in vertex_info IN)
 	OUT.texcoord = IN.texcoord;
 	OUT.color = IN.color;
 	return OUT;
-
 }

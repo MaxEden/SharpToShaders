@@ -5,10 +5,6 @@ namespace TestSmallShader
 {
     class StampShader : IShader
     {
-        public Blend Blend => new(BlendOp.Zero, BlendOp.SrcColor);
-        public bool ZWrite => false;
-        public bool Cull => false;
-        public bool Lighting => false;
         struct appdata_t
         {
             [POSITION] public float4 vertex;

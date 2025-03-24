@@ -35,5 +35,4 @@ float4 main(in input_from_vertex IN)
 	c.rgb = c.rgb + (1 - c.a);
 	c = saturate(c);
 	return c;
-
 }

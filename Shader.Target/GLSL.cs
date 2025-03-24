@@ -103,6 +103,7 @@ namespace Shader.BuildTarget
 
                 if (methodRef.Name == "mul")
                 {
+                    //swap sides?
                     result = call.List[0].btext + " * " + call.List[1].btext;
                     needsBrackets = true; 
                     return true;
@@ -136,16 +137,18 @@ namespace Shader.BuildTarget
             sb.AppendLine();
 
             if (Context.ShaderProgram.TargetMethods != null)
+            {
                 foreach (var meth in Context.ShaderProgram.BuiltMethods.Reverse())
                 {
                     if (meth.Key == Context.ShaderProgram.MainMethod) continue;
 
                     sb.AppendLine(meth.Value.Header);
                     sb.AppendLine("{");
-                    sb.AppendLine(meth.Value.Body.ToString());
+                    sb.Append(meth.Value.Body.ToString());
                     sb.AppendLine("}");
+                    sb.AppendLine();
                 }
-
+            }
 
             foreach (var field in Context.Builder.Varyings.Values.Where(p => p.IsUsed && !p.BuiltIn && p.Type == VarType.Attribute))
             {
@@ -178,8 +181,7 @@ namespace Shader.BuildTarget
                 );
             }
 
-            sb.AppendLine(Context.Builder.Body.ToString());
-
+            sb.Append(Context.Builder.Body.ToString());
             sb.AppendLine("}");
 
 

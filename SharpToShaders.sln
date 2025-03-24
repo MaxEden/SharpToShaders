@@ -18,6 +18,9 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestSmallShader", "TestSmallShader\TestSmallShader.csproj", "{602E809A-F54B-4089-BB9E-91AFB23C4291}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "TestShaders", "TestShaders", "{F551F53D-C5B2-41A8-B0B5-6CAD12D09AB1}"
+	ProjectSection(SolutionItems) = preProject
+		readme.md = readme.md
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lemon", "Lemon\Lemon\Lemon.csproj", "{A708DAEE-D9E3-4369-BC9D-F0253828413A}"
 EndProject
