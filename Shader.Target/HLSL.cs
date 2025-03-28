@@ -203,6 +203,9 @@ namespace Shader.BuildTarget
 
             
         }
+
+        public string Extension => "hlsl";
+
         public void AddVarying(ProgramType programType, FieldDefinition field, VarType varType, InputType input)
         {
             var semantic = field.CustomAttributes.FirstOrDefault(p => p.AttributeType.Resolve()

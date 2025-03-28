@@ -12,7 +12,8 @@ namespace Shader.BuildTarget
         bool MapMethod(MethodReference methodRef, Parameters call, out string result, out bool needsBrackets);
         bool MapReturn(StackItem popped, out string text);
         bool MapTypeName(TypeReference typeRef, out string result);
-
         void WriteOut(StringBuilder sb);
+
+        string Extension { get; }
     }
 }

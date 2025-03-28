@@ -1,3 +1,4 @@
+#version 330
 uniform sampler2D _MainTex;
 uniform sampler2D _PatternTex;
 uniform vec4 _ScalePattern;
@@ -14,9 +15,9 @@ float Global_Luminance(vec3 rgb)
 }
 
 
-varying vec4 color;
-varying vec2 texcoord;
-varying vec3 worldPos;
+in vec4 color;
+in vec2 texcoord;
+in vec3 worldPos;
 
 void main(){
 	vec2 uv = worldPos.xy * _ScalePattern.xy;
@@ -26,11 +27,11 @@ void main(){
 	l = average(c);
 	l = l - _ScalePattern.z;
 	l = l * _ScalePattern.w;
-	c.rgb = saturate(l) + color;
+	c.rgb = (clamp(l, 0, 1) + color).xyz;
 	c.a = c.a * ((pattern.a + _AlphaAdd) + (color.a - 1));
-	c = saturate(c);
+	c = clamp(c, 0, 1);
 	c.rgb = c.rgb * c.a;
 	c.rgb = c.rgb + (1 - c.a);
-	c = saturate(c);
+	c = clamp(c, 0, 1);
 	gl_FragColor = c; return;
 }

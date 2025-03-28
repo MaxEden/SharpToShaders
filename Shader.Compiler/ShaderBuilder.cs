@@ -61,8 +61,8 @@ namespace Compiler
 
             var name = ShaderProgram.MainType.Name
                 + "." + ShaderProgram.MainMethod.Name
-                + "." + ShaderProgram.BuildTarget.GetType().Name.ToLowerInvariant();
-                //+ ".shader.txt";
+                + "." + ShaderProgram.BuildTarget.GetType().Name
+                + "." + ShaderProgram.BuildTarget.Extension;
 
             File.WriteAllText(ShaderProgram.Path + name, sb.ToString());
             Console.WriteLine("Output:" + ShaderProgram.Path + name);

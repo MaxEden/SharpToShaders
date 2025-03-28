@@ -40,6 +40,7 @@ namespace Compiler
                     {
                         var builder = new ShaderBuilder();
                         builder.Build(new HLSL(), _srcPath + "/", item);
+                        builder.Build(new GLES20(), _srcPath + "/", item);
                         builder.Build(new GLSL(), _srcPath + "/", item);
                     }
                 }

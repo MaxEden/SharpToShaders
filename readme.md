@@ -69,7 +69,7 @@ You can call any other static methods outside your main shader class.
 Any field that is used in this static method will be added to the uniforms. That allows you to create helper functions that reuse the same matrices and any other global values such as lighting inputs. The methods itself will be added before the main method in final output.
 
 ### Targets
-Currently there are two build targets: hlsl and glsl.
+Currently there are three build targets: **hlsl**, **glsl** and **gles20**.
 To implement a new output target you need to implement **IBuildTarget** interface, which is basically a huge mapper between C# fields and calls and the target output. 
 
 ### What else

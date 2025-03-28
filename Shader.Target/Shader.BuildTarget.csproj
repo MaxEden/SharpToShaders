@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="GLES20.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Shader.Compiler\Shader.Builder.csproj" />
   </ItemGroup>
 

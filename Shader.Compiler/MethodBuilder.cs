@@ -540,14 +540,14 @@ namespace Compiler
                 case Code.Stind_R4:
                     {
                         PopTwo(out var left, out var right, "int");
-                        AppendLine(left + " = " + right + ";");
+                        AppendLine(left + " = " + right.text + ";");
                     }
                     break;
                 case Code.Stobj:
                     {
                         var typeRef = (TypeReference)op.Operand;
                         PopTwo(out var left, out var right, MapTypeName(typeRef));
-                        AppendLine(left + " = " + right + ";");
+                        AppendLine(left + " = " + right.text + ";");
                     }
                     break;
                 case Code.Ldc_R4:
@@ -579,13 +579,6 @@ namespace Compiler
                         if (_operators.TryGetValue(methodRef.Name, out var oper))
                         {
                             Operator(oper);
-                            return op.Next;
-                        }
-
-                        if (methodRef.Name == "op_Implicit")
-                        {
-                            var peek = Peek();
-                            peek.expectedType = MapTypeName(methodRef.ReturnType);
                             return op.Next;
                         }
 
@@ -1154,7 +1147,7 @@ namespace Compiler
             needsBrackets = false;
             if (methodRef.Name == "op_Implicit")
             {
-                result = call.ToString();
+                result = call.ToParamString();
                 return true;
             }
 
@@ -1177,7 +1170,6 @@ namespace Compiler
             right = Pop();
             left = Pop(expectedLeftType);
         }
-        public string Brackets(string text) => "(" + text + ")";
         public void Operator(string oper)
         {
             PopTwo(out var left, out var right);
